@@ -1,7 +1,8 @@
 const express = require('express');
-const admin = require('firebase-admin');
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getDatabase } = require('firebase-admin/database');
 
-// Safely pull environment variables
+// Safely pull and format environment variables
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined;
@@ -10,8 +11,9 @@ if (!projectId || !clientEmail || !privateKey) {
   console.error("ERROR: Missing Firebase environment variables on Render!");
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert({
+// Initialize Firebase Admin using the modular syntax
+const appFirebase = initializeApp({
+  credential: cert({
     projectId: projectId,
     clientEmail: clientEmail,
     privateKey: privateKey
@@ -19,7 +21,7 @@ admin.initializeApp({
   databaseURL: "https://codm-19d8b-default-rtdb.firebaseio.com/"
 });
 
-const db = admin.database();
+const db = getDatabase(appFirebase);
 const app = express();
 app.use(express.json());
 
