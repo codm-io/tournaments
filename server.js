@@ -1,19 +1,22 @@
 const express = require('express');
 const admin = require('firebase-admin');
 
-// Initialize Firebase Admin with your downloaded service account key
-const serviceAccount = require('./serviceAccountKey.json');
-
+// Initialize Firebase Admin securely using environment variables
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://codm-19d8b-default-rtdb.firebaseio.com/" // Your Firebase database URL
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    // Fix private key newlines so Render reads them correctly
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined
+  }),
+  databaseURL: "https://codm-19d8b-default-rtdb.firebaseio.com/"
 });
 
 const db = admin.database();
 const app = express();
 app.use(express.json());
 
-// 1. Payment Initiation Route (Called when user clicks Ksh 20 or Ksh 100)
+// 1. Payment Initiation Route
 app.post('/api/initiate-payment', async (req, res) => {
     const { amount, phone, userId, accountReference } = req.body;
 
@@ -47,7 +50,7 @@ app.post('/api/initiate-payment', async (req, res) => {
     }
 });
 
-// 2. Webhook Route (Called securely by PalPluss only when payment succeeds)
+// 2. Webhook Route
 app.post('/api/palpluss-webhook', async (req, res) => {
     const event = req.body;
 
@@ -69,7 +72,6 @@ app.post('/api/palpluss-webhook', async (req, res) => {
     return res.status(200).json({ received: true });
 });
 
-// Use Render's dynamic port or default to 3000 locally
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
