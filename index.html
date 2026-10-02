@@ -25,7 +25,7 @@
         <div class="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
     </div>
 
-    <!-- Auth Screens Container (Hidden by default until session check finishes) -->
+    <!-- Auth Screens Container -->
     <div id="auth-container" class="fixed inset-0 bg-white z-50 flex items-center justify-center p-4 hidden">
         <div class="w-full max-w-sm space-y-6">
             <div class="text-center space-y-1">
@@ -56,7 +56,7 @@
                 </div>
             </form>
 
-            <!-- Register Step 1: Phone & Password -->
+            <!-- Register Step 1 -->
             <form id="form-register-step1" onsubmit="handleRegisterStep1(event)" class="space-y-3.5 hidden">
                 <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
                     Step 1 of 2: Phone & Password
@@ -79,7 +79,7 @@
                 </div>
             </form>
 
-            <!-- Register Step 2: IGN & UID -->
+            <!-- Register Step 2 -->
             <form id="form-register-step2" onsubmit="handleRegisterStep2(event)" class="space-y-3.5 hidden">
                 <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
                     Step 2 of 2: In-Game Identity
@@ -104,7 +104,7 @@
         </div>
     </div>
 
-    <!-- Main Dashboard Application Header -->
+    <!-- Application Header -->
     <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
         <div class="flex items-center space-x-2">
             <button onclick="toggleSidebar()" class="p-1 text-gray-700 hover:text-black focus:outline-none">
@@ -147,7 +147,7 @@
                 Log Out
             </button>
             <div class="text-center text-[10px] text-gray-400">
-                CODM Tournaments v4.0
+                CODM Tournaments v4.1
             </div>
         </div>
     </div>
@@ -169,7 +169,7 @@
             <p class="text-[11px] text-gray-400">Tap a tournament card to inspect details & money split, or use the action buttons below each card.</p>
 
             <div id="tournaments-list" class="space-y-3">
-                <!-- Populated dynamically via JavaScript -->
+                <!-- Populated dynamically -->
             </div>
         </div>
 
@@ -234,7 +234,7 @@
             </div>
 
             <div id="hof-list" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm divide-y divide-gray-100">
-                <!-- Dynamically populated legends -->
+                <!-- Legends -->
             </div>
         </div>
 
@@ -378,7 +378,7 @@
             </div>
             
             <div class="pt-2">
-                <button onclick="openPalPlussWidget()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                <button id="palpluss-pay-btn" onclick="startPalplussPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
                     Top Up via PalPluss
                 </button>
             </div>
@@ -386,18 +386,6 @@
             <button onclick="closeAddBalanceModal()" class="w-full py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-200 transition-all">
                 Cancel
             </button>
-        </div>
-    </div>
-
-    <!-- PalPluss Paylink Widget SDK Modal (Widget Only View) -->
-    <div id="palpluss-widget-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-[90]">
-        <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl flex flex-col relative">
-            <button onclick="closePalPlussWidget()" class="absolute top-2.5 right-2.5 w-7 h-7 bg-gray-200 hover:bg-black hover:text-white text-gray-700 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all">✕</button>
-            
-            <!-- PalPluss Paylink Widget iframe container (Widget Only) -->
-            <div class="w-full h-[480px] bg-white relative">
-                <iframe id="palpluss-iframe" src="" class="w-full h-full border-0"></iframe>
-            </div>
         </div>
     </div>
 
@@ -453,10 +441,15 @@
         CODM Mobile Tournaments &copy; 2026
     </footer>
 
-    <!-- Firebase App & Scripts -->
+    <!-- Firebase SDK (compat mode as used in app) & PalPluss Paylink SDK module -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <script type="module">
+        import { pay } from "https://cdn.jsdelivr.net/npm/@palpluss/paylink/+esm";
+        window.palplussPaySdk = pay;
+    </script>
 
     <script>
         const firebaseConfig = {
@@ -481,8 +474,8 @@
         let tempRegData = {};
         let isAuthenticating = false;
 
-        // Updated PalPluss Paylink URL
-        const PALPLUSS_PAYLINK_URL = "https://link.palpluss.com/a4c3f10d-01ec-4b34-882a-a2de494320bd";
+        // Your requested PalPluss Paylink UUID
+        const PALPLUSS_PAYLINK_ID = "a4c3f10d-01ec-4b34-882a-a2de494320bd";
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -656,38 +649,47 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        // Open PalPluss Widget Paylink Flow using the updated URL and reference parameter
-        function openPalPlussWidget() {
-            closeAddBalanceModal();
-            
-            const iframe = document.getElementById('palpluss-iframe');
-            iframe.src = `${PALPLUSS_PAYLINK_URL}?reference=TOPUP-${currentUser.uid}`;
-            
-            document.getElementById('palpluss-widget-modal').classList.remove('hidden');
-        }
-
-        function closePalPlussWidget() {
-            document.getElementById('palpluss-widget-modal').classList.add('hidden');
-            document.getElementById('palpluss-iframe').src = "";
-        }
-
-        // Listen for message events from PalPluss Widget SDK iframe upon successful payment
-        window.addEventListener('message', async (event) => {
-            if (event.data && (event.data.type === 'PAYMENT_SUCCESS' || event.data.status === 'SUCCESS')) {
-                closePalPlussWidget();
-                if (currentUser && userProfile) {
-                    const incrementAmount = 1; // 1 bob increment per successful paylink transaction
-                    userProfile.balance = (userProfile.balance || 0) + incrementAmount;
-                    try {
-                        await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
-                        updateUIProfile();
-                        showToast(`Successfully deposited via PalPluss!`);
-                    } catch (err) {
-                        showToast("Error updating balance in database.");
-                    }
-                }
+        // Direct SDK Checkout Integration (Adding Balance on Success)
+        async function startPalplussPayment() {
+            if (!currentUser || !window.palplussPaySdk) {
+                showToast("Payment SDK not ready or user not signed in.");
+                return;
             }
-        });
+
+            const payBtn = document.getElementById('palpluss-pay-btn');
+
+            try {
+                payBtn.innerText = "Opening Payment Window...";
+                payBtn.disabled = true;
+
+                // Open PalPluss payment modal using paylink ID
+                const result = await window.palplussPaySdk(PALPLUSS_PAYLINK_ID);
+
+                // If payment is successful, result contains { txId, amount, phone }
+                if (result && result.txId) {
+                    const depositAmount = Number(result.amount) || 0;
+                    const userRef = rtdb.ref('users/' + currentUser.uid);
+
+                    // Atomic transaction update on Realtime Database
+                    await userRef.transaction((currentData) => {
+                        if (currentData) {
+                            currentData.balance = (Number(currentData.balance) || 0) + depositAmount;
+                            currentData.lastTxId = result.txId;
+                            currentData.lastUpdated = new Date().toISOString();
+                        }
+                        return currentData;
+                    });
+
+                    closeAddBalanceModal();
+                    showToast(`Successfully deposited Ksh ${depositAmount.toLocaleString()}! Ref: ${result.txId}`);
+                }
+            } catch (error) {
+                console.log("Payment window closed or cancelled.");
+            } finally {
+                payBtn.innerText = "Top Up via PalPluss";
+                payBtn.disabled = false;
+            }
+        }
 
         function switchMode(mode) {
             const joinSec = document.getElementById('section-join');
