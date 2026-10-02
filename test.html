@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PalPluss Realtime Database Dashboard</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PalPluss Paylink Browser SDK -->
+    <script type="module">
+        import { pay } from 'https://cdn.jsdelivr.net/npm/@palpluss/paylink/+esm';
+        window.palplussPay = pay;
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 p-2 rounded-lg font-bold text-lg">PP</div>
+            <span class="font-semibold text-xl tracking-wide">PalPluss Portal</span>
+        </div>
+        <div id="user-nav" class="hidden flex items-center space-x-4">
+            <span id="user-email" class="text-sm text-slate-400"></span>
+            <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition">Log Out</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow flex items-center justify-center p-6">
+
+        <!-- AUTH SECTION (Hidden when logged in) -->
+        <section id="auth-section" class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <h2 id="auth-title" class="text-2xl font-bold">Welcome Back</h2>
+                <p class="text-slate-400 text-sm mt-1">Sign in or create an account to manage your balance</p>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Email Address</label>
+                    <input type="email" id="auth-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Password</label>
+                    <input type="password" id="auth-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-semibold transition">Log In</button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-sm text-indigo-400 hover:underline">Need an account? Sign Up</button>
+            </div>
+            <p id="auth-error" class="mt-4 text-center text-sm text-red-400 hidden"></p>
+        </section>
+
+        <!-- DASHBOARD SECTION (Hidden when logged out) -->
+        <section id="dashboard-section" class="w-full max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-xl hidden">
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-700">
+                <div>
+                    <h2 class="text-2xl font-bold">Account Dashboard</h2>
+                    <p class="text-slate-400 text-sm">Real-time status and balance tracking via Realtime Database</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Live Sync</span>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Balance Card -->
+                <div class="bg-slate-900 border border-slate-700/60 rounded-xl p-6">
+                    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Current Balance</span>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-3xl font-extrabold text-indigo-400">KES</span>
+                        <span id="dash-balance" class="text-4xl font-extrabold ml-2">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Status Card -->
+                <div class="bg-slate-900 border border-slate-700/60 rounded-xl p-6">
+                    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Payment Status</span>
+                    <div class="mt-3 flex items-center">
+                        <span id="dash-status-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div class="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h4 class="font-bold text-indigo-200">Make Real Payment</h4>
+                    <p class="text-sm text-indigo-300/70">Triggers PalPluss payment window. Updates balance on success.</p>
+                </div>
+                <button id="pay-btn" onclick="startPalplussPayment()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95">
+                    Pay Now (KES 1,000)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-800">
+        PalPluss Realtime Integration Engine &copy; 2026
+    </footer>
+
+    <!-- Firebase & PalPluss Integration Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            runTransaction, 
+            onValue, 
+            get 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { pay } from "https://cdn.jsdelivr.net/npm/@palpluss/paylink/+esm";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoUW6Io15E6DylGYYwbgL6meBaPbJ41pg",
+            authDomain: "palpluss.firebaseapp.com",
+            projectId: "palpluss",
+            storageBucket: "palpluss.firebasestorage.app",
+            messagingSenderId: "593477297581",
+            appId: "1:593477297581:web:ef8097fd6689fd31bb6d24",
+            measurementId: "G-LVPQ9CPRQV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let isSignUpMode = false;
+        let dbRefListener = null;
+
+        // Toggle Auth Mode
+        window.toggleAuthMode = function() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('auth-title').innerText = isSignUpMode ? "Create Account" : "Welcome Back";
+            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
+            document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+
+        // Handle Auth Form
+        window.handleAuth = async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+            errorEl.classList.add('hidden');
+
+            try {
+                if (isSignUpMode) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const userRef = ref(db, 'users/' + userCredential.user.uid);
+                    await set(userRef, {
+                        email: email,
+                        balance: 0.00,
+                        status: "pending",
+                        createdAt: new Date().toISOString()
+                    });
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                errorEl.innerText = error.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Handle Logout
+        window.handleLogout = async function() {
+            await signOut(auth);
+        }
+
+        // Launch PalPluss Payment Modal and Update Firebase on Success
+        window.startPalplussPayment = async function() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Replace with your actual Paylink UUID generated from your PalPluss Console
+            const paylinkId = "YOUR_PALPLUSS_PAYLINK_ID"; 
+
+            try {
+                const payBtn = document.getElementById('pay-btn');
+                payBtn.innerText = "Processing Payment...";
+                payBtn.disabled = true;
+
+                // Opens the PalPluss widget modal and awaits completion
+                const result = await pay(paylinkId);
+                
+                // result returns { txId, amount, phone } upon successful payment
+                if (result && result.txId) {
+                    const userRef = ref(db, 'users/' + user.uid);
+                    
+                    // Atomically add amount and update status to 'paid' in Firebase Realtime Database
+                    await runTransaction(userRef, (currentData) => {
+                        if (currentData) {
+                            currentData.balance = (Number(currentData.balance) || 0) + Number(result.amount || 1000);
+                            currentData.status = "paid";
+                            currentData.lastTxId = result.txId;
+                            currentData.lastUpdated = new Date().toISOString();
+                        }
+                        return currentData;
+                    });
+                    
+                    alert("Payment successful! Reference: " + result.txId);
+                }
+            } catch (error) {
+                console.log("Payment cancelled or closed by user:", error);
+            } finally {
+                const payBtn = document.getElementById('pay-btn');
+                payBtn.innerText = "Pay Now (KES 1,000)";
+                payBtn.disabled = false;
+            }
+        }
+
+        // Auth State Listener & Realtime Sync
+        onAuthStateChanged(auth, (user) => {
+            const authSection = document.getElementById('auth-section');
+            const dashboardSection = document.getElementById('dashboard-section');
+            const userNav = document.getElementById('user-nav');
+            const userEmailEl = document.getElementById('user-email');
+
+            if (user) {
+                authSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+                userNav.classList.remove('hidden');
+                userEmailEl.innerText = user.email;
+
+                const userRef = ref(db, 'users/' + user.uid);
+                
+                get(userRef).then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        set(userRef, {
+                            email: user.email,
+                            balance: 0.00,
+                            status: "pending"
+                        });
+                    }
+                });
+
+                dbRefListener = onValue(userRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        document.getElementById('dash-balance').innerText = Number(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+                        
+                        const statusBadge = document.getElementById('dash-status-badge');
+                        const currentStatus = (data.status || 'pending').toLowerCase();
+                        statusBadge.innerText = currentStatus;
+
+                        if (currentStatus === 'paid') {
+                            statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                        } else {
+                            statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                        }
+                    }
+                });
+            } else {
+                authSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                userNav.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
