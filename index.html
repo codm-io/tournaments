@@ -140,14 +140,14 @@
             </div>
             <a href="#" onclick="toggleSidebar(); switchMode('join');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Find Tournaments</a>
             <a href="#" onclick="toggleSidebar(); switchMode('host');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Host CODM Tournament</a>
-            <a href="#" onclick="toggleSidebar(); switchMode('hof');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Hall of Fame</a>
+            <a href="#" onclick="toggleSidebar(); switchMode('community');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Community Feed</a>
         </div>
         <div class="p-4 border-t space-y-2">
             <button onclick="handleLogout()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-red-600 text-xs font-bold rounded-lg transition-all">
                 Log Out
             </button>
             <div class="text-center text-[10px] text-gray-400">
-                CODM Tournaments v4.1
+                CODM Tournaments v4.4
             </div>
         </div>
     </div>
@@ -226,15 +226,42 @@
             </form>
         </div>
 
-        <!-- Section: Hall of Fame -->
-        <div id="section-hof" class="space-y-4 hidden">
+        <!-- Section: Community Feed (Chat stream style: New items at the bottom, WhatsApp-like fixed input bar) -->
+        <div id="section-community" class="space-y-4 hidden pb-24">
             <div class="flex items-center justify-between">
-                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">🏆 Hall of Fame</h2>
-                <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">Legends</span>
+                <div>
+                    <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">🌐 CODM Community</h2>
+                    <p class="text-[10px] text-gray-400">What's happening in the tournament zone</p>
+                </div>
+                <span class="text-xs bg-black text-white px-2.5 py-1 rounded-full font-bold">Feed</span>
             </div>
 
-            <div id="hof-list" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm divide-y divide-gray-100">
-                <!-- Legends -->
+            <!-- Tweets Feed List (Newest messages at bottom) -->
+            <div id="tweets-list" class="space-y-3">
+                <!-- Dynamically populated tweets -->
+            </div>
+
+            <!-- Fixed WhatsApp-style bottom input bar with active reply banner -->
+            <div class="fixed bottom-14 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 p-2.5 max-w-md mx-auto z-30 shadow-lg space-y-1.5">
+                <!-- Reply Context Banner (Hidden by default) -->
+                <div id="reply-banner" class="hidden flex items-center justify-between bg-gray-100 px-3 py-1.5 rounded-lg border-l-4 border-black text-[11px]">
+                    <div class="truncate text-gray-700">
+                        Replying to <strong id="replying-to-name" class="text-black">User</strong>
+                    </div>
+                    <button type="button" onclick="cancelReply()" class="text-gray-500 hover:text-black font-bold px-1.5 text-xs">✕</button>
+                </div>
+
+                <form onsubmit="handlePostTweet(event)" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" id="composer-avatar">
+                        P
+                    </div>
+                    <div class="flex-1 bg-gray-100 rounded-full px-3.5 py-1.5 border border-gray-200 flex items-center">
+                        <input type="text" id="tweet-input" maxlength="280" required placeholder="Type a message or share a clip..." class="w-full bg-transparent text-xs text-gray-800 placeholder-gray-400 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-9 h-9 bg-black hover:bg-gray-800 text-white rounded-full flex items-center justify-center font-bold text-xs shadow-md transition-all flex-shrink-0">
+                        ➤
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -431,17 +458,13 @@
             <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
             <span class="text-[10px]">Host</span>
         </button>
-        <button onclick="switchMode('hof')" id="nav-btn-hof" class="flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium">
-            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-            <span class="text-[10px]">Hall of Fame</span>
+        <button onclick="switchMode('community')" id="nav-btn-community" class="flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <span class="text-[10px]">Community</span>
         </button>
     </nav>
 
-    <footer class="text-center py-3 text-[10px] text-gray-400 border-t border-gray-200">
-        CODM Mobile Tournaments &copy; 2026
-    </footer>
-
-    <!-- Firebase SDK (compat mode as used in app) & PalPluss Paylink SDK module -->
+    <!-- Firebase SDK (compat mode) & PalPluss Paylink SDK module -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -469,12 +492,12 @@
         let currentUser = null;
         let userProfile = null;
         let tournaments = [];
-        let hallOfFame = [];
+        let tweets = [];
         let selectedTournamentId = null;
+        let replyingToUser = null; // Stores target username for replies
         let tempRegData = {};
         let isAuthenticating = false;
 
-        // Your requested PalPluss Paylink UUID
         const PALPLUSS_PAYLINK_ID = "a4c3f10d-01ec-4b34-882a-a2de494320bd";
 
         function hideLoadingScreen() {
@@ -533,6 +556,7 @@
             document.getElementById('current-username').innerText = userProfile.name;
             document.getElementById('sidebar-user-info').innerText = `${userProfile.name} (${userProfile.phone || 'User'})`;
             document.getElementById('user-balance').innerText = (userProfile.balance || 0).toLocaleString();
+            document.getElementById('composer-avatar').innerText = userProfile.name.charAt(0).toUpperCase();
         }
 
         function toggleAuthMode(mode) {
@@ -649,7 +673,6 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        // Direct SDK Checkout Integration (Adding Balance on Success)
         async function startPalplussPayment() {
             if (!currentUser || !window.palplussPaySdk) {
                 showToast("Payment SDK not ready or user not signed in.");
@@ -662,15 +685,12 @@
                 payBtn.innerText = "Opening Payment Window...";
                 payBtn.disabled = true;
 
-                // Open PalPluss payment modal using paylink ID
                 const result = await window.palplussPaySdk(PALPLUSS_PAYLINK_ID);
 
-                // If payment is successful, result contains { txId, amount, phone }
                 if (result && result.txId) {
                     const depositAmount = Number(result.amount) || 0;
                     const userRef = rtdb.ref('users/' + currentUser.uid);
 
-                    // Atomic transaction update on Realtime Database
                     await userRef.transaction((currentData) => {
                         if (currentData) {
                             currentData.balance = (Number(currentData.balance) || 0) + depositAmount;
@@ -694,22 +714,22 @@
         function switchMode(mode) {
             const joinSec = document.getElementById('section-join');
             const hostSec = document.getElementById('section-host');
-            const hofSec = document.getElementById('section-hof');
+            const communitySec = document.getElementById('section-community');
 
             const navBtnJoin = document.getElementById('nav-btn-join');
             const navBtnHost = document.getElementById('nav-btn-host');
-            const navBtnHof = document.getElementById('nav-btn-hof');
+            const navBtnCommunity = document.getElementById('nav-btn-community');
 
             joinSec.classList.add('hidden');
             hostSec.classList.add('hidden');
-            hofSec.classList.add('hidden');
+            communitySec.classList.add('hidden');
 
             const inactiveClass = "flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium transition-all";
             const activeClass = "flex flex-col items-center justify-center flex-1 text-black font-bold transition-all";
 
             navBtnJoin.className = inactiveClass;
             navBtnHost.className = inactiveClass;
-            navBtnHof.className = inactiveClass;
+            navBtnCommunity.className = inactiveClass;
 
             if (mode === 'join') {
                 joinSec.classList.remove('hidden');
@@ -722,10 +742,10 @@
                     document.getElementById('host-name').value = `${userProfile.name}'s Tournament`;
                 }
                 updateModeLimits();
-            } else if (mode === 'hof') {
-                hofSec.classList.remove('hidden');
-                navBtnHof.className = activeClass;
-                renderHallOfFame();
+            } else if (mode === 'community') {
+                communitySec.classList.remove('hidden');
+                navBtnCommunity.className = activeClass;
+                renderCommunityFeed();
             }
         }
 
@@ -798,17 +818,133 @@
                 renderTournaments();
             });
 
-            rtdb.ref('hallOfFame').on('value', (snapshot) => {
-                hallOfFame = [];
+            rtdb.ref('communityPosts').on('value', (snapshot) => {
+                tweets = [];
                 const data = snapshot.val();
                 if (data) {
                     Object.keys(data).forEach(key => {
-                        hallOfFame.push({ id: key, ...data[key] });
+                        tweets.push({ id: key, ...data[key] });
                     });
-                    hallOfFame.sort((a, b) => (b.prize || 0) - (a.prize || 0));
+                    // Sort ascending so newer messages appear at the bottom like a chat
+                    tweets.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
                 }
-                renderHallOfFame();
+                renderCommunityFeed();
             });
+        }
+
+        function setReplyTo(authorName) {
+            replyingToUser = authorName;
+            const banner = document.getElementById('reply-banner');
+            const nameSpan = document.getElementById('replying-to-name');
+            nameSpan.innerText = authorName;
+            banner.classList.remove('hidden');
+            document.getElementById('tweet-input').focus();
+        }
+
+        function cancelReply() {
+            replyingToUser = null;
+            document.getElementById('reply-banner').classList.add('hidden');
+        }
+
+        async function handlePostTweet(e) {
+            e.preventDefault();
+            if (!currentUser || !userProfile) return;
+
+            const textInput = document.getElementById('tweet-input');
+            let content = textInput.value.trim();
+            if (!content) return;
+
+            // If replying to someone, prepend mention reference format
+            if (replyingToUser) {
+                content = `@${replyingToUser} ${content}`;
+            }
+
+            const newPost = {
+                authorName: userProfile.name,
+                authorUid: userProfile.uid,
+                authorPhone: userProfile.phone || 'Player',
+                content: content,
+                likes: 0,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            try {
+                await rtdb.ref('communityPosts').push(newPost);
+                textInput.value = '';
+                cancelReply();
+                showToast("Posted to Community!");
+            } catch (err) {
+                showToast("Error posting: " + err.message);
+            }
+        }
+
+        async function likeTweet(postId, currentLikes) {
+            try {
+                await rtdb.ref('communityPosts/' + postId).update({
+                    likes: (currentLikes || 0) + 1
+                });
+            } catch (err) {
+                console.log("Error liking post", err);
+            }
+        }
+
+        function renderCommunityFeed() {
+            const list = document.getElementById('tweets-list');
+            if (!list) return;
+
+            if (tweets.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 bg-white border border-gray-200 rounded-xl text-xs text-gray-400">No community posts yet. Be the first to share something!</div>`;
+                return;
+            }
+
+            let html = '';
+            tweets.forEach(post => {
+                const initial = post.authorName ? post.authorName.charAt(0).toUpperCase() : 'P';
+                const timeAgo = post.createdAt ? new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
+                html += `
+                <div class="bg-white border border-gray-200 hover:border-gray-300 rounded-xl p-3.5 space-y-2.5 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                ${initial}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-gray-900 flex items-center space-x-1">
+                                    <span>${post.authorName}</span>
+                                    <span class="text-[10px] text-gray-400 font-normal">UID: ${post.authorUid}</span>
+                                </h4>
+                                <span class="text-[10px] text-gray-400">${timeAgo}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap break-words pl-10">${escapeHtml(post.content)}</p>
+
+                    <div class="flex items-center space-x-6 pl-10 pt-1 text-[11px] text-gray-500">
+                        <button onclick="likeTweet('${post.id}', ${post.likes || 0})" class="flex items-center space-x-1.5 hover:text-red-500 transition-colors group">
+                            <span class="p-1 rounded-full group-hover:bg-red-50">❤</span>
+                            <span class="font-medium">${post.likes || 0}</span>
+                        </button>
+                        <button onclick="setReplyTo('${post.authorName}')" class="flex items-center space-x-1.5 hover:text-blue-500 transition-colors group">
+                            <span class="p-1 rounded-full group-hover:bg-blue-50">💬</span>
+                            <span>Reply</span>
+                        </button>
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
         function renderTournaments() {
@@ -875,37 +1011,6 @@
                         </div>
                     </div>
                     <div>${cardActionButton}</div>
-                </div>`;
-            });
-            list.innerHTML = html;
-        }
-
-        function renderHallOfFame() {
-            const list = document.getElementById('hof-list');
-            if (!list) return;
-
-            if (hallOfFame.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-xs text-gray-400">No legends recorded yet. Complete a match and declare a winner!</div>`;
-                return;
-            }
-
-            let html = '';
-            hallOfFame.forEach((legend, idx) => {
-                let badgeColor = "bg-gray-100 text-gray-600";
-                if (idx === 0) badgeColor = "bg-amber-400 text-white";
-                else if (idx === 1) badgeColor = "bg-gray-300 text-gray-700";
-                else if (idx === 2) badgeColor = "bg-amber-700 text-white";
-
-                html += `
-                <div class="p-3.5 flex items-center justify-between text-xs">
-                    <div class="flex items-center space-x-3">
-                        <span class="w-6 h-6 ${badgeColor} rounded-full flex items-center justify-center font-bold text-[10px]">${idx + 1}</span>
-                        <div>
-                            <p class="font-bold text-gray-900">${legend.name}</p>
-                            <p class="text-[10px] text-gray-500">UID: ${legend.uid}</p>
-                        </div>
-                    </div>
-                    <span class="font-extrabold text-emerald-600">Ksh ${legend.prize.toLocaleString()}</span>
                 </div>`;
             });
             list.innerHTML = html;
@@ -1239,13 +1344,6 @@
                     status: 'completed',
                     winnerName,
                     winnerUid
-                });
-
-                await rtdb.ref('hallOfFame').push({
-                    name: winnerName,
-                    uid: winnerUid,
-                    prize: winnerShare,
-                    awardedAt: firebase.database.ServerValue.TIMESTAMP
                 });
 
                 closeWinnerModal();
