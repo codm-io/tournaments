@@ -75,6 +75,11 @@
                 <p>Member since: <span id="dash-created-at"></span></p>
             </div>
 
+            <!-- SUCCESS MESSAGE DIV -->
+            <div id="success-message-div" style="display: none; background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border: 1px solid #c3e6cb;">
+                <strong>Success!</strong> Payment confirmed. Reference: <span id="success-tx-id"></span>
+            </div>
+
             <!-- Stats Grid -->
             <div>
                 <div>
@@ -218,6 +223,8 @@
 
             const paylinkId = "772a4e5d-f032-4511-a250-9b5b99e8e43f"; 
             const payBtn = document.getElementById('pay-btn');
+            const successDiv = document.getElementById('success-message-div');
+            successDiv.style.display = 'none';
             
             try {
                 payBtn.innerText = "Opening Payment Window...";
@@ -238,7 +245,8 @@
                         return currentData;
                     });
                     
-                    alert("Payment confirmed! Ref: " + result.txId);
+                    document.getElementById('success-tx-id').innerText = result.txId;
+                    successDiv.style.display = 'block';
                 }
             } catch (error) {
                 console.log("Payment modal closed or cancelled by user.");
