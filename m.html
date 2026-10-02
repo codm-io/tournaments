@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PalPluss Frontend-Only Realtime Dashboard</title>
+</head>
+<body>
+
+    <!-- LOADING DIV -->
+    <div id="loading-div" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+        <h2>Loading...</h2>
+    </div>
+
+   <button onclick="handleLogout()">Log Out</button>
+
+    <main>
+
+        <!-- LOGIN BLOCK -->
+        <section id="login-block" style="display: none;">
+            <div>
+                <h2>Login</h2>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div>
+                    <label>Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div>
+                    <label>Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit">LogIn</button>
+            </form>
+
+            <div>
+                <button type="button" onclick="showBlock('register-block')">Need an account? Sign Up</button>
+            </div>
+            <p id="login-error" style="display: none;"></p>
+        </section>
+
+        <!-- REGISTER BLOCK -->
+        <section id="register-block" style="display: none;">
+            <div>
+                <h2>Create Account</h2>
+            </div>
+
+            <form onsubmit="handleRegister(event)">
+                <div>
+                    <label>Full Name</label>
+                    <input type="text" id="register-name" required>
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div>
+                    <label>Password</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <button type="submit">SignUp</button>
+            </form>
+
+            <div>
+                <button type="button" onclick="showBlock('login-block')">Already have an account? Log In</button>
+            </div>
+            <p id="register-error" style="display: none;"></p>
+        </section>
+
+        <!-- DASHBOARD BLOCK -->
+        <section id="dashboard-block" style="display: none;">
+            <div>
+                <h2>Welcome, <span id="dash-user-name">User</span>!</h2>
+                <p>Member since: <span id="dash-created-at"></span></p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div>
+                <div>
+                    <span>KES</span>
+                    <span id="dash-balance">0.00</span>
+                </div>
+
+                <!-- Status Card -->
+                <div>
+                    <span>Payment Status</span>
+                    <div>
+                        <span id="dash-status-badge">Pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div>
+                <button type="button" id="pay-btn" onclick="startPalplussPayment()">
+                    Pay Now
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Firebase & PalPluss Integration Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            runTransaction, 
+            onValue, 
+            get 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { pay } from "https://cdn.jsdelivr.net/npm/@palpluss/paylink/+esm";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoUW6Io15E6DylGYYwbgL6meBaPbJ41pg",
+            authDomain: "palpluss.firebaseapp.com",
+            projectId: "palpluss",
+            storageBucket: "palpluss.firebasestorage.app",
+            messagingSenderId: "593477297581",
+            appId: "1:593477297581:web:ef8097fd6689fd31bb6d24",
+            measurementId: "G-LVPQ9CPRQV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let dbRefListener = null;
+
+        // Show/Hide Loading Helper
+        function showLoading() {
+            document.getElementById('loading-div').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-div').style.display = 'none';
+        }
+
+        // Block switcher helper
+        window.showBlock = function(blockId) {
+            document.getElementById('login-block').style.display = 'none';
+            document.getElementById('register-block').style.display = 'none';
+            document.getElementById('dashboard-block').style.display = 'none';
+            
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('register-error').style.display = 'none';
+
+            document.getElementById(blockId).style.display = 'block';
+        };
+
+        // Handle Login
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+            showLoading();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.style.display = 'none';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                errorEl.innerText = error.message;
+                errorEl.style.display = 'block';
+                hideLoading();
+            }
+        };
+
+        // Handle Register
+        window.handleRegister = async function(event) {
+            event.preventDefault();
+            showLoading();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const errorEl = document.getElementById('register-error');
+            errorEl.style.display = 'none';
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const userRef = ref(db, 'users/' + userCredential.user.uid);
+                await set(userRef, {
+                    name: name,
+                    email: email,
+                    balance: 0.00,
+                    status: "pending",
+                    createdAt: new Date().toISOString()
+                });
+            } catch (error) {
+                errorEl.innerText = error.message;
+                errorEl.style.display = 'block';
+                hideLoading();
+            }
+        };
+
+        // Handle Logout
+        window.handleLogout = async function() {
+            showLoading();
+            await signOut(auth);
+        };
+
+        // Launch PalPluss Widget & Update Realtime DB Directly on Success
+        window.startPalplussPayment = async function() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const paylinkId = "772a4e5d-f032-4511-a250-9b5b99e8e43f"; 
+            const payBtn = document.getElementById('pay-btn');
+            
+            try {
+                payBtn.innerText = "Opening Payment Window...";
+                payBtn.disabled = true;
+
+                const result = await pay(paylinkId);
+                
+                if (result && result.txId) {
+                    const userRef = ref(db, 'users/' + user.uid);
+                    
+                    await runTransaction(userRef, (currentData) => {
+                        if (currentData) {
+                            currentData.balance = (Number(currentData.balance) || 0) + Number(result.amount || 0);
+                            currentData.status = "paid";
+                            currentData.lastTxId = result.txId;
+                            currentData.lastUpdated = new Date().toISOString();
+                        }
+                        return currentData;
+                    });
+                    
+                    alert("Payment confirmed! Ref: " + result.txId);
+                }
+            } catch (error) {
+                console.log("Payment modal closed or cancelled by user.");
+            } finally {
+                payBtn.innerText = "Pay Now";
+                payBtn.disabled = false;
+            }
+        };
+
+        // Auth State Listener & Realtime Sync
+        onAuthStateChanged(auth, (user) => {
+            showLoading();
+            if (user) {
+                showBlock('dashboard-block');
+
+                const userRef = ref(db, 'users/' + user.uid);
+                
+                get(userRef).then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        set(userRef, {
+                            name: user.email.split('@')[0],
+                            email: user.email,
+                            balance: 0.00,
+                            status: "pending",
+                            createdAt: new Date().toISOString()
+                        }).then(() => {
+                            hideLoading();
+                        });
+                    } else {
+                        hideLoading();
+                    }
+                }).catch(() => {
+                    hideLoading();
+                });
+
+                dbRefListener = onValue(userRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        if (data.name) {
+                            document.getElementById('dash-user-name').innerText = data.name;
+                        }
+                        if (data.createdAt) {
+                            const formattedDate = new Date(data.createdAt).toLocaleDateString();
+                            document.getElementById('dash-created-at').innerText = formattedDate;
+                        }
+                        document.getElementById('dash-balance').innerText = Number(data.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+                        
+                        const statusBadge = document.getElementById('dash-status-badge');
+                        const currentStatus = (data.status || 'pending').toLowerCase();
+                        statusBadge.innerText = currentStatus;
+                    }
+                    hideLoading();
+                });
+            } else {
+                showBlock('login-block');
+                hideLoading();
+            }
+        });
+    </script>
+</body>
+</html>
