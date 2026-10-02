@@ -374,15 +374,12 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-bold text-gray-900">Top Up Balance</h3>
-                <p class="text-xs text-gray-500">Select an amount to deposit via PalPluss Widget:</p>
+                <p class="text-xs text-gray-500">Fund your account via PalPluss:</p>
             </div>
             
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-                <button onclick="proceedToPayment(20)" class="py-3 bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold rounded-xl border border-gray-200 transition-all shadow-sm">
-                    Ksh 20
-                </button>
-                <button onclick="proceedToPayment(100)" class="py-3 bg-gray-100 hover:bg-black hover:text-white text-gray-800 text-xs font-bold rounded-xl border border-gray-200 transition-all shadow-sm">
-                    Ksh 100
+            <div class="pt-2">
+                <button onclick="openPalPlussWidget()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                    Top Up via PalPluss
                 </button>
             </div>
 
@@ -392,31 +389,14 @@
         </div>
     </div>
 
-    <!-- PalPluss Widget Checkout Modal -->
+    <!-- PalPluss Paylink Widget SDK Modal (Widget Only View) -->
     <div id="palpluss-widget-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-[90]">
-        <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-4 shadow-2xl text-center">
-            <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-sm font-bold mx-auto">
-                P+
-            </div>
-            <div class="space-y-1">
-                <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wide">PalPluss Widget Checkout</h3>
-                <p class="text-[11px] text-gray-500">Top up amount: <strong id="palpluss-amount-label" class="text-black">Ksh 0</strong></p>
-            </div>
-
-            <div class="space-y-3 text-left">
-                <div>
-                    <label class="block text-[10px] font-semibold text-gray-700 mb-1">M-Pesa Phone Number</label>
-                    <input type="tel" id="palpluss-phone-input" placeholder="e.g. +254712345678" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-black">
-                </div>
-            </div>
-
-            <div class="space-y-2 pt-1">
-                <button onclick="executePalPlussPayment()" class="w-full py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                    Pay Now via PalPluss
-                </button>
-                <button onclick="closePalPlussWidget()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-xl transition-all">
-                    Cancel
-                </button>
+        <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl flex flex-col relative">
+            <button onclick="closePalPlussWidget()" class="absolute top-2.5 right-2.5 w-7 h-7 bg-gray-200 hover:bg-black hover:text-white text-gray-700 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all">✕</button>
+            
+            <!-- PalPluss Paylink Widget iframe container (Widget Only) -->
+            <div class="w-full h-[480px] bg-white relative">
+                <iframe id="palpluss-iframe" src="" class="w-full h-full border-0"></iframe>
             </div>
         </div>
     </div>
@@ -499,8 +479,10 @@
         let hallOfFame = [];
         let selectedTournamentId = null;
         let tempRegData = {};
-        let pendingPalPlussAmount = 0;
-        let isAuthenticating = false; // Prevents reloading race conditions during registration/login
+        let isAuthenticating = false;
+
+        // Your PalPluss Paylink ID
+        const PALPLUSS_PAYLINK_ID = "772a4e5d-f032-4511-a250-9b5b99e8e43f";
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -515,9 +497,8 @@
             return `${cleanPhone}@codm.tournaments`;
         }
 
-        // Persistent Auth State Handler with Race-Condition Lock
         auth.onAuthStateChanged(async (firebaseUser) => {
-            if (isAuthenticating) return; // Ignore state flickers while an explicit sign-in/register action is executing
+            if (isAuthenticating) return;
 
             const authContainer = document.getElementById('auth-container');
             if (firebaseUser) {
@@ -675,53 +656,38 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        function proceedToPayment(amount) {
+        // Open PalPluss Widget Paylink Flow using your exact link and reference parameter
+        function openPalPlussWidget() {
             closeAddBalanceModal();
-            pendingPalPlussAmount = amount;
-            document.getElementById('palpluss-amount-label').innerText = `Ksh ${amount}`;
-            if (userProfile && userProfile.phone) {
-                document.getElementById('palpluss-phone-input').value = userProfile.phone;
-            }
+            
+            const iframe = document.getElementById('palpluss-iframe');
+            iframe.src = `https://pay.palpluss.com/paylink/${PALPLUSS_PAYLINK_ID}?reference=TOPUP-${currentUser.uid}`;
+            
             document.getElementById('palpluss-widget-modal').classList.remove('hidden');
         }
 
         function closePalPlussWidget() {
             document.getElementById('palpluss-widget-modal').classList.add('hidden');
+            document.getElementById('palpluss-iframe').src = "";
         }
 
-        async function executePalPlussPayment() {
-            const phoneInput = document.getElementById('palpluss-phone-input').value.trim();
-            if (!phoneInput) {
-                showCustomAlert("Please enter a valid M-Pesa phone number for PalPluss.");
-                return;
-            }
-
-            closePalPlussWidget();
-            showToast(`Initiating PalPluss STK push of Ksh ${pendingPalPlussAmount}...`);
-
-            try {
-                const response = await fetch('https://codm-backend-server.onrender.com/api/initiate-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        amount: pendingPalPlussAmount,
-                        phone: phoneInput,
-                        userId: currentUser.uid,
-                        accountReference: `CODM-TOPUP-${userProfile.name}`
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    showToast("STK Push sent! Please check your phone and enter your M-Pesa PIN.");
-                } else {
-                    showCustomAlert("Payment Initiation Failed: " + (data.error || "Please check your details and try again."));
+        // Listen for message events from PalPluss Widget SDK iframe upon successful payment
+        window.addEventListener('message', async (event) => {
+            if (event.data && (event.data.type === 'PAYMENT_SUCCESS' || event.data.status === 'SUCCESS')) {
+                closePalPlussWidget();
+                if (currentUser && userProfile) {
+                    const incrementAmount = 1; // 1 bob increment per successful paylink transaction
+                    userProfile.balance = (userProfile.balance || 0) + incrementAmount;
+                    try {
+                        await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
+                        updateUIProfile();
+                        showToast(`Successfully deposited via PalPluss!`);
+                    } catch (err) {
+                        showToast("Error updating balance in database.");
+                    }
                 }
-            } catch (err) {
-                showCustomAlert("Network error connecting to payment gateway: " + err.message);
             }
-        }
+        });
 
         function switchMode(mode) {
             const joinSec = document.getElementById('section-join');
