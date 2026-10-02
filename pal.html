@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODM Mobile Tournaments</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-between pb-20">
+
+    <!-- Global App Loading Screen Overlay -->
+    <div id="app-loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center space-y-4 transition-opacity duration-300">
+        <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-xl animate-pulse">
+            🎯
+        </div>
+        <div class="text-center space-y-1">
+            <h2 class="text-sm font-bold text-gray-900 tracking-wide uppercase">CODM Tournaments</h2>
+            <p id="loading-status-text" class="text-xs text-gray-500">Checking session & loading data...</p>
+        </div>
+        <div class="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Auth Screens Container (Hidden by default until session check finishes) -->
+    <div id="auth-container" class="fixed inset-0 bg-white z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-sm space-y-6">
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto shadow-lg">
+                    🎯
+                </div>
+                <h1 class="text-lg font-bold text-gray-900" id="auth-title">Welcome to CODM Tournaments</h1>
+                <p class="text-xs text-gray-500" id="auth-subtitle">Sign in with your phone number</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="login-phone" required placeholder="e.g. +254712345678" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
+                    Log In
+                </button>
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleAuthMode('register-step1')" class="text-xs text-gray-600 font-medium hover:underline">
+                        Don't have an account? <span class="text-black font-bold">Register</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Register Step 1: Phone & Password -->
+            <form id="form-register-step1" onsubmit="handleRegisterStep1(event)" class="space-y-3.5 hidden">
+                <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
+                    Step 1 of 2: Phone & Password
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="reg-phone" required placeholder="e.g. +254712345678" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+                    <input type="password" id="reg-password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
+                    Next: Gaming Profile ➔
+                </button>
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleAuthMode('login')" class="text-xs text-gray-600 font-medium hover:underline">
+                        Already have an account? <span class="text-black font-bold">Log In</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Register Step 2: IGN & UID -->
+            <form id="form-register-step2" onsubmit="handleRegisterStep2(event)" class="space-y-3.5 hidden">
+                <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
+                    Step 2 of 2: In-Game Identity
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">In-Game Name (IGN)</label>
+                    <input type="text" id="reg-name" required placeholder="e.g. Sammy" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">CODM UID</label>
+                    <input type="text" id="reg-uid" required placeholder="e.g. 6748392019" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                </div>
+                <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
+                    Complete & Get Ksh 1,500 Bonus
+                </button>
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleAuthMode('register-step1')" class="text-xs text-gray-600 font-medium hover:underline">
+                        ⬅ Back to Step 1
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Application Header -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleSidebar()" class="p-1 text-gray-700 hover:text-black focus:outline-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold">
+                🎯
+            </div>
+            <span class="text-xs font-bold text-gray-800" id="current-username">Player</span>
+        </div>
+
+        <div class="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+            <span class="text-xs font-semibold text-gray-700">Ksh <span id="user-balance">1,500</span></span>
+            <button onclick="openAddBalanceModal()" class="w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-gray-800 transition-all">
+                +
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Menu Overlay -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-xs text-gray-800">Menu</h3>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-black text-sm font-bold">✕</button>
+        </div>
+        <div class="p-4 space-y-3 flex-1">
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <p class="text-[10px] text-gray-500">Logged in Phone</p>
+                <p class="text-xs font-bold text-gray-800 truncate" id="sidebar-user-info">+254712345678</p>
+            </div>
+            <a href="#" onclick="toggleSidebar(); switchMode('join');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Find Tournaments</a>
+            <a href="#" onclick="toggleSidebar(); switchMode('host');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Host CODM Tournament</a>
+            <a href="#" onclick="toggleSidebar(); switchMode('hof');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Hall of Fame</a>
+        </div>
+        <div class="p-4 border-t space-y-2">
+            <button onclick="handleLogout()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-red-600 text-xs font-bold rounded-lg transition-all">
+                Log Out
+            </button>
+            <div class="text-center text-[10px] text-gray-400">
+                CODM Tournaments v4.2
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 space-y-6">
+
+        <!-- Toast Notification Box -->
+        <div id="toast" class="hidden bg-gray-900 text-white text-xs px-4 py-3 rounded-lg shadow-lg text-center transition-all">
+            Action completed successfully!
+        </div>
+
+        <!-- Section: Join Tournaments -->
+        <div id="section-join" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">CODM Active Tournaments</h2>
+                <span id="tournament-count" class="text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-600 font-medium">0 active</span>
+            </div>
+            <p class="text-[11px] text-gray-400">Tap a tournament card to inspect details & money split, or use the action buttons below each card.</p>
+
+            <div id="tournaments-list" class="space-y-3">
+                <!-- Populated dynamically via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Section: Host Tournaments -->
+        <div id="section-host" class="space-y-4 hidden">
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] p-3 rounded-xl space-y-1">
+                <p>⚠ Hosting costs a fixed platform fee of <strong>Ksh 50</strong>.</p>
+                <p class="text-[10px] text-amber-700">Prize Pool Split: <strong>60% Winner</strong> | <strong>25% Organizer</strong> | <strong>15% System</strong></p>
+            </div>
+
+            <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Create CODM Tournament</h2>
+            
+            <form onsubmit="handleHostSubmit(event)" class="bg-white border border-gray-200 rounded-xl p-4 space-y-4 shadow-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Tournament Name (Auto Generated)</label>
+                    <input type="text" id="host-name" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-600 font-bold focus:outline-none cursor-not-allowed" value="Tournament">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Game Mode</label>
+                    <select id="host-mode-type" onchange="updateModeLimits()" required class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-black">
+                        <option value="MP">Multiplayer (MP)</option>
+                        <option value="BR">Battle Royale (BR)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Entry Fee</label>
+                    <select id="host-fee" required class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-black">
+                        <option value="30">Ksh 30</option>
+                        <option value="50" selected>Ksh 50</option>
+                        <option value="100">Ksh 100</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-gray-700" id="label-players">Number of Players: <span id="player-slider-val" class="font-bold text-black">8</span></label>
+                        <span class="text-[10px] text-gray-400" id="slider-range-hint">MP: 2 - 8</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="adjustPlayers(-1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-bold text-xs flex items-center justify-center transition-all">-</button>
+                        <input type="range" id="host-max-players" min="2" max="8" value="8" oninput="updateSliderValue(this.value)" class="flex-1 accent-black cursor-pointer">
+                        <button type="button" onclick="adjustPlayers(1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-bold text-xs flex items-center justify-center transition-all">+</button>
+                    </div>
+
+                    <p class="text-[10px] text-gray-400 mt-1" id="players-hint">Multiplayer mode allows between 2 and 8 players.</p>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-all shadow-sm">
+                    Create Tournament (Pay Ksh 50 Fee)
+                </button>
+            </form>
+        </div>
+
+        <!-- Section: Hall of Fame -->
+        <div id="section-hof" class="space-y-4 hidden">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">🏆 Hall of Fame</h2>
+                <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">Legends</span>
+            </div>
+
+            <div id="hof-list" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm divide-y divide-gray-100">
+                <!-- Dynamically populated legends -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modals & Popups -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-[99]">
+        <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+                ⚠
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-sm font-bold text-gray-900">Match Start Warning</h3>
+                <p id="custom-alert-message" class="text-xs text-gray-600 leading-relaxed">You need at least 2 players joined to start this match.</p>
+            </div>
+            <button onclick="closeCustomAlert()" class="w-full py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                Got It
+            </button>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <span id="detail-modal-mode" class="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">CODM - MP</span>
+                    <h3 id="detail-modal-title" class="text-sm font-bold text-gray-900 mt-1">Tournament Details</h3>
+                </div>
+                <button onclick="closeDetailsModal()" class="w-7 h-7 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full flex items-center justify-center font-bold text-xs transition-all">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs text-gray-700">
+                <div class="bg-gray-50 p-3 rounded-xl space-y-2 border border-gray-200">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Host Organizer:</span>
+                        <strong id="detail-modal-host" class="text-black">Host Name</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Entry Fee:</span>
+                        <strong id="detail-modal-fee" class="text-black">Ksh 50</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Capacity:</span>
+                        <strong id="detail-modal-players" class="text-black">0 / 8 Players</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Status:</span>
+                        <strong id="detail-modal-status" class="text-emerald-600">Open</strong>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/60 border border-amber-200 p-3 rounded-xl space-y-1.5">
+                    <p class="font-bold text-amber-900 text-[11px] mb-1">💰 Prize Money Distribution Structure:</p>
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-600">Total Collected Pool:</span>
+                        <strong id="detail-total-pool" class="text-gray-900">Ksh 0</strong>
+                    </div>
+                    <div class="flex justify-between text-[11px] pt-1 border-t border-amber-200/60">
+                        <span class="text-emerald-700 font-medium">🏆 Winner Share (60%):</span>
+                        <strong id="detail-winner-share" class="text-emerald-700 font-extrabold">Ksh 0</strong>
+                    </div>
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-600">👤 Organizer Share (25%):</span>
+                        <strong id="detail-organizer-share" class="text-black">Ksh 0</strong>
+                    </div>
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-600">⚙️ System Maintenance (15%):</span>
+                        <strong id="detail-system-share" class="text-black">Ksh 0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeDetailsModal()" class="w-full py-2 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-all">
+                Close Details
+            </button>
+        </div>
+    </div>
+
+    <!-- Join Modal -->
+    <div id="join-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white w-full max-w-sm rounded-xl p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="modal-title" class="text-xs font-bold text-gray-800">Register for CODM Tournament</h3>
+                <button onclick="closeJoinModal()" class="text-gray-400 hover:text-black text-sm font-bold">✕</button>
+            </div>
+
+            <div class="bg-gray-50 p-3 rounded-lg space-y-1.5 text-xs text-gray-700">
+                <div class="flex justify-between">
+                    <span>Entry Fee:</span>
+                    <strong id="modal-fee-amount" class="text-black">Ksh 50</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Winner Share (60%):</span>
+                    <strong id="modal-winner-share" class="text-emerald-600 font-extrabold">Ksh 0</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Name:</span>
+                    <strong id="modal-user-name" class="text-black">Player</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Registered UID:</span>
+                    <strong id="modal-user-uid" class="text-black">1234567890</strong>
+                </div>
+            </div>
+
+            <button onclick="confirmJoin()" class="w-full py-2.5 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all shadow-sm">
+                Join Tournament
+            </button>
+        </div>
+    </div>
+
+    <!-- View Participants Modal -->
+    <div id="view-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 hidden z-50">
+        <div class="bg-white w-full max-w-lg h-[92vh] rounded-2xl p-5 space-y-4 shadow-2xl flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center border-b pb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800" id="view-modal-title">Tournament Participants</h3>
+                        <p class="text-[10px] text-gray-400" id="match-status-subtitle">Status: Open for Registration</p>
+                    </div>
+                    <button onclick="closeViewModal()" class="w-7 h-7 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full flex items-center justify-center font-bold text-sm transition-all">✕</button>
+                </div>
+            </div>
+
+            <div id="participants-list" class="space-y-2 overflow-y-auto flex-1 pr-1 my-2"></div>
+
+            <div id="host-actions-container" class="border-t pt-3 bg-white"></div>
+        </div>
+    </div>
+
+    <!-- Add Balance Modal -->
+    <div id="add-balance-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-[80]">
+        <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+                💳
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-sm font-bold text-gray-900">Top Up Balance</h3>
+                <p class="text-xs text-gray-500">Select an option to deposit via PalPluss Paylink:</p>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-2.5 pt-1">
+                <button onclick="proceedToPayment()" class="py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                    Open PalPluss Checkout
+                </button>
+            </div>
+
+            <button onclick="closeAddBalanceModal()" class="w-full py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-200 transition-all">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- PalPluss Paylink Widget Checkout Modal -->
+    <div id="palpluss-widget-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-[90]">
+        <div class="bg-white w-full max-w-md rounded-2xl p-4 space-y-3 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="w-6 h-6 bg-black text-white rounded-lg flex items-center justify-center text-xs font-bold">P+</div>
+                    <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wide">PalPluss Secure Checkout</h3>
+                </div>
+                <button onclick="closePalPlussWidget()" class="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-bold text-xs transition-all">✕</button>
+            </div>
+
+            <!-- Embedded Paylink Iframe -->
+            <div class="w-full overflow-hidden rounded-xl bg-gray-50">
+                <iframe 
+                    id="palpluss-pay-iframe"
+                    src="" 
+                    style="width: 100%; border: none; min-height: 560px; display: block;" 
+                    allow="payment">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Declare Winner Modal -->
+    <div id="winner-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white w-full max-w-sm rounded-xl p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-xs font-bold text-gray-800">🏆 Declare Match Winner</h3>
+                <button onclick="closeWinnerModal()" class="text-gray-400 hover:text-black text-sm font-bold">✕</button>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-lg text-[11px] space-y-1 text-gray-600">
+                <div class="flex justify-between font-bold text-gray-900 pb-1 border-b">
+                    <span>Total Collected Pool:</span>
+                    <span id="winner-pool-text" class="text-gray-600">Ksh 0</span>
+                </div>
+                <div class="flex justify-between pt-1">
+                    <span>Winner Share (60%):</span>
+                    <strong id="split-winner-text" class="text-emerald-600 font-extrabold">Ksh 0</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Organizer Share (25%):</span>
+                    <strong id="split-organizer-text" class="text-black">Ksh 0</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>System Share (15%):</span>
+                    <strong id="split-system-text" class="text-black">Ksh 0</strong>
+                </div>
+            </div>
+
+            <p class="text-[11px] text-gray-500">Select the champion who won the match:</p>
+            <div id="winner-select-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40 max-w-md mx-auto flex justify-around py-2 shadow-lg">
+        <button onclick="switchMode('join')" id="nav-btn-join" class="flex flex-col items-center justify-center flex-1 text-black font-bold">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <span class="text-[10px]">Tournaments</span>
+        </button>
+        <button onclick="switchMode('host')" id="nav-btn-host" class="flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+            <span class="text-[10px]">Host</span>
+        </button>
+        <button onclick="switchMode('hof')" id="nav-btn-hof" class="flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium">
+            <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+            <span class="text-[10px]">Hall of Fame</span>
+        </button>
+    </nav>
+
+    <footer class="text-center py-3 text-[10px] text-gray-400 border-t border-gray-200">
+        CODM Mobile Tournaments &copy; 2026
+    </footer>
+
+    <!-- Firebase App & Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyClYSD9FiNiwjtLsiWG_0xbXGBQUmSxQSA",
+            authDomain: "codm-19d8b.firebaseapp.com",
+            projectId: "codm-19d8b",
+            storageBucket: "codm-19d8b.firebasestorage.app",
+            messagingSenderId: "208027362884",
+            appId: "1:208027362884:web:c3fc8c26024f2351423e11",
+            measurementId: "G-KXJMPSG902"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const rtdb = firebase.database();
+
+        let currentUser = null;
+        let userProfile = null;
+        let tournaments = [];
+        let hallOfFame = [];
+        let selectedTournamentId = null;
+        let tempRegData = {};
+        let isAuthenticating = false;
+
+        function hideLoadingScreen() {
+            const loader = document.getElementById('app-loading-screen');
+            if (loader) {
+                loader.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => loader.remove(), 300);
+            }
+        }
+
+        function phoneToEmail(phone) {
+            const cleanPhone = phone.replace(/[^a-zA-Z0-9]/g, '');
+            return `${cleanPhone}@codm.tournaments`;
+        }
+
+        auth.onAuthStateChanged(async (firebaseUser) => {
+            if (isAuthenticating) return;
+
+            const authContainer = document.getElementById('auth-container');
+            if (firebaseUser) {
+                currentUser = firebaseUser;
+                authContainer.classList.add('hidden');
+                await loadUserProfile();
+                setupRealtimeData();
+            } else {
+                currentUser = null;
+                userProfile = null;
+                authContainer.classList.remove('hidden');
+                hideLoadingScreen();
+            }
+        });
+
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            const userRef = rtdb.ref('users/' + currentUser.uid);
+            userRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    userProfile = data;
+                } else {
+                    userProfile = {
+                        name: "Player",
+                        uid: "1234567890",
+                        phone: currentUser.email ? currentUser.email.split('@')[0] : '',
+                        balance: 1500
+                    };
+                    userRef.set(userProfile);
+                }
+                updateUIProfile();
+                hideLoadingScreen();
+            });
+        }
+
+        function updateUIProfile() {
+            if (!userProfile) return;
+            document.getElementById('current-username').innerText = userProfile.name;
+            document.getElementById('sidebar-user-info').innerText = `${userProfile.name} (${userProfile.phone || 'User'})`;
+            document.getElementById('user-balance').innerText = (userProfile.balance || 0).toLocaleString();
+        }
+
+        function toggleAuthMode(mode) {
+            const loginForm = document.getElementById('form-login');
+            const regStep1 = document.getElementById('form-register-step1');
+            const regStep2 = document.getElementById('form-register-step2');
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+
+            loginForm.classList.add('hidden');
+            regStep1.classList.add('hidden');
+            regStep2.classList.add('hidden');
+
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden');
+                title.innerText = "Welcome to CODM Tournaments";
+                subtitle.innerText = "Sign in with your phone number";
+            } else if (mode === 'register-step1') {
+                regStep1.classList.remove('hidden');
+                title.innerText = "Create Account";
+                subtitle.innerText = "Step 1: Enter your phone number";
+            } else if (mode === 'register-step2') {
+                regStep2.classList.remove('hidden');
+                title.innerText = "Create Account";
+                subtitle.innerText = "Step 2: Enter your in-game identity";
+            }
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            isAuthenticating = true;
+            const phone = document.getElementById('login-phone').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const email = phoneToEmail(phone);
+
+            try {
+                const cred = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = cred.user;
+                document.getElementById('auth-container').classList.add('hidden');
+                await loadUserProfile();
+                setupRealtimeData();
+                isAuthenticating = false;
+                showToast("Logged in successfully!");
+            } catch (error) {
+                isAuthenticating = false;
+                showToast("Error: " + error.message);
+            }
+        }
+
+        function handleRegisterStep1(e) {
+            e.preventDefault();
+            tempRegData.phone = document.getElementById('reg-phone').value.trim();
+            tempRegData.password = document.getElementById('reg-password').value.trim();
+            toggleAuthMode('register-step2');
+        }
+
+        async function handleRegisterStep2(e) {
+            e.preventDefault();
+            isAuthenticating = true;
+            const name = document.getElementById('reg-name').value.trim();
+            const uid = document.getElementById('reg-uid').value.trim();
+            const email = phoneToEmail(tempRegData.phone);
+
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, tempRegData.password);
+                currentUser = cred.user;
+                userProfile = {
+                    name: name || "Player",
+                    uid: uid || "1234567890",
+                    phone: tempRegData.phone,
+                    balance: 1500
+                };
+                await rtdb.ref('users/' + currentUser.uid).set(userProfile);
+                
+                document.getElementById('auth-container').classList.add('hidden');
+                updateUIProfile();
+                setupRealtimeData();
+                hideLoadingScreen();
+                isAuthenticating = false;
+                showToast("Account created successfully! Ksh 1,500 added.");
+            } catch (error) {
+                isAuthenticating = false;
+                showToast("Error: " + error.message);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await auth.signOut();
+                toggleSidebar();
+                showToast("Logged out successfully.");
+            } catch (error) {
+                showToast("Error signing out");
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        function openAddBalanceModal() {
+            document.getElementById('add-balance-modal').classList.remove('hidden');
+        }
+
+        function closeAddBalanceModal() {
+            document.getElementById('add-balance-modal').classList.add('hidden');
+        }
+
+        // PalPluss Paylink Widget Integration using your exact Paylink ID
+        function proceedToPayment() {
+            closeAddBalanceModal();
+            
+            const paylinkId = 'dd8917ed-3792-4d86-ba4e-f17d11afb575'; 
+            
+            const iframe = document.getElementById('palpluss-pay-iframe');
+            iframe.src = `https://link.palpluss.com/${paylinkId}?embed=1`;
+            
+            document.getElementById('palpluss-widget-modal').classList.remove('hidden');
+        }
+
+        function closePalPlussWidget() {
+            document.getElementById('palpluss-widget-modal').classList.add('hidden');
+            document.getElementById('palpluss-pay-iframe').src = '';
+        }
+
+        // Listen for postMessage events coming from the PalPluss iframe
+        window.addEventListener('message', async function(e) {
+            if (!e.data || typeof e.data !== 'object') return;
+            if (e.origin !== 'https://link.palpluss.com') return;
+
+            // Auto-resize iframe height
+            if (e.data.type === 'RESIZE') {
+                document.getElementById('palpluss-pay-iframe').style.height = e.data.height + 'px';
+            }
+
+            // Payment completed successfully inside the widget iframe
+            if (e.data.type === 'PAYMENT_SUCCESS') {
+                const amountPaid = e.data.amount || 0;
+                const txId = e.data.txId;
+
+                closePalPlussWidget();
+                showToast(`Payment verified! Adding Ksh ${amountPaid.toLocaleString()} to balance.`);
+
+                // Update user balance in Firebase RTDB
+                if (currentUser && userProfile) {
+                    userProfile.balance = (userProfile.balance || 0) + amountPaid;
+                    try {
+                        await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
+                        updateUIProfile();
+                    } catch (err) {
+                        console.error('Error updating balance after payment:', err);
+                    }
+                }
+            }
+        });
+
+        function switchMode(mode) {
+            const joinSec = document.getElementById('section-join');
+            const hostSec = document.getElementById('section-host');
+            const hofSec = document.getElementById('section-hof');
+
+            const navBtnJoin = document.getElementById('nav-btn-join');
+            const navBtnHost = document.getElementById('nav-btn-host');
+            const navBtnHof = document.getElementById('nav-btn-hof');
+
+            joinSec.classList.add('hidden');
+            hostSec.classList.add('hidden');
+            hofSec.classList.add('hidden');
+
+            const inactiveClass = "flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium transition-all";
+            const activeClass = "flex flex-col items-center justify-center flex-1 text-black font-bold transition-all";
+
+            navBtnJoin.className = inactiveClass;
+            navBtnHost.className = inactiveClass;
+            navBtnHof.className = inactiveClass;
+
+            if (mode === 'join') {
+                joinSec.classList.remove('hidden');
+                navBtnJoin.className = activeClass;
+                renderTournaments();
+            } else if (mode === 'host') {
+                hostSec.classList.remove('hidden');
+                navBtnHost.className = activeClass;
+                if (userProfile) {
+                    document.getElementById('host-name').value = `${userProfile.name}'s Tournament`;
+                }
+                updateModeLimits();
+            } else if (mode === 'hof') {
+                hofSec.classList.remove('hidden');
+                navBtnHof.className = activeClass;
+                renderHallOfFame();
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        function showCustomAlert(message) {
+            document.getElementById('custom-alert-message').innerText = message;
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
+
+        function updateModeLimits() {
+            const modeType = document.getElementById('host-mode-type').value;
+            const maxPlayersInput = document.getElementById('host-max-players');
+            const playersHint = document.getElementById('players-hint');
+            const sliderRangeHint = document.getElementById('slider-range-hint');
+
+            if (modeType === 'MP') {
+                maxPlayersInput.min = 2;
+                maxPlayersInput.max = 8;
+                maxPlayersInput.value = 8;
+                sliderRangeHint.innerText = "MP: 2 - 8";
+                playersHint.innerText = "Multiplayer mode allows between 2 and 8 players.";
+            } else {
+                maxPlayersInput.min = 10;
+                maxPlayersInput.max = 100;
+                maxPlayersInput.value = 50;
+                sliderRangeHint.innerText = "BR: 10 - 100";
+                playersHint.innerText = "Battle Royale mode allows between 10 and 100 players.";
+            }
+            updateSliderValue(maxPlayersInput.value);
+        }
+
+        function updateSliderValue(val) {
+            document.getElementById('player-slider-val').innerText = val;
+        }
+
+        function adjustPlayers(amount) {
+            const maxPlayersInput = document.getElementById('host-max-players');
+            let currentVal = parseInt(maxPlayersInput.value) || 0;
+            let min = parseInt(maxPlayersInput.min);
+            let max = parseInt(maxPlayersInput.max);
+            
+            let newVal = currentVal + amount;
+            if (newVal < min) newVal = min;
+            if (newVal > max) newVal = max;
+
+            maxPlayersInput.value = newVal;
+            updateSliderValue(newVal);
+        }
+
+        function setupRealtimeData() {
+            rtdb.ref('tournaments').on('value', (snapshot) => {
+                tournaments = [];
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        tournaments.push({ id: key, ...data[key] });
+                    });
+                    tournaments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                }
+                renderTournaments();
+            });
+
+            rtdb.ref('hallOfFame').on('value', (snapshot) => {
+                hallOfFame = [];
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        hallOfFame.push({ id: key, ...data[key] });
+                    });
+                    hallOfFame.sort((a, b) => (b.prize || 0) - (a.prize || 0));
+                }
+                renderHallOfFame();
+            });
+        }
+
+        function renderTournaments() {
+            if (!currentUser || !userProfile) return;
+            const list = document.getElementById('tournaments-list');
+            document.getElementById('tournament-count').innerText = `${tournaments.length} active`;
+
+            if (tournaments.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 bg-white border border-gray-200 rounded-xl text-xs text-gray-400">No active CODM tournaments. Host one!</div>`;
+                return;
+            }
+
+            let html = '';
+            tournaments.forEach(t => {
+                const isHost = t.host === userProfile.name;
+                const playersArray = t.players ? Object.values(t.players) : [];
+                const hasJoined = playersArray.some(p => p.uid === userProfile.uid);
+                const isFull = playersArray.length >= t.maxPlayers;
+                const totalPool = t.entryFee * t.maxPlayers;
+                const winnerShare = Math.round(totalPool * 0.60);
+
+                let statusBadge = `<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">Open</span>`;
+                if (t.status === 'closed') {
+                    statusBadge = `<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">Reg Closed</span>`;
+                } else if (t.status === 'started') {
+                    statusBadge = `<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-medium">In Progress 🎮</span>`;
+                } else if (t.status === 'completed') {
+                    statusBadge = `<span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-medium">🏆 Completed</span>`;
+                }
+
+                let cardActionButton = '';
+                if (t.status === 'completed') {
+                    cardActionButton = `<div class="w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-center font-bold text-xs">Completed (Winner: ${t.winnerName || 'Declared'})</div>`;
+                } else if (isHost) {
+                    cardActionButton = `<button onclick="openViewModal('${t.id}')" class="w-full py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Manage Match & Participants ➔</button>`;
+                } else if (hasJoined) {
+                    cardActionButton = `<div class="w-full py-2 bg-emerald-100 text-emerald-800 rounded-lg text-center font-bold text-xs">✓ You Have Joined</div>`;
+                } else if (isFull || t.status !== 'open') {
+                    cardActionButton = `<div class="w-full py-2 bg-red-50 text-red-600 rounded-lg text-center font-bold text-xs">Registration Closed / Full</div>`;
+                } else {
+                    cardActionButton = `<button onclick="openJoinModal('${t.id}')" class="w-full py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Join Tournament (Ksh ${t.entryFee})</button>`;
+                }
+
+                html += `
+                <div class="bg-white border border-gray-200 hover:border-black rounded-xl p-3.5 space-y-3 shadow-sm transition-all">
+                    <div onclick="openDetailsModal('${t.id}')" class="cursor-pointer space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">CODM - ${t.mode}</span>
+                                    ${statusBadge}
+                                    ${isHost ? '<span class="text-[10px] bg-black text-white px-1.5 py-0.5 rounded font-bold">Yours</span>' : ''}
+                                </div>
+                                <h3 class="text-xs font-bold text-gray-800 mt-1">${t.name}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-emerald-600 block">Win Pool: Ksh ${winnerShare.toLocaleString()}</span>
+                                <span class="text-[9px] text-gray-400 underline">Tap for details ➔</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-gray-500 pt-1 border-t border-gray-100">
+                            <span>Players: ${playersArray.length} / ${t.maxPlayers}</span>
+                            <span>Fee: Ksh ${t.entryFee}</span>
+                        </div>
+                    </div>
+                    <div>${cardActionButton}</div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function renderHallOfFame() {
+            const list = document.getElementById('hof-list');
+            if (!list) return;
+
+            if (hallOfFame.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-xs text-gray-400">No legends recorded yet. Complete a match and declare a winner!</div>`;
+                return;
+            }
+
+            let html = '';
+            hallOfFame.forEach((legend, idx) => {
+                let badgeColor = "bg-gray-100 text-gray-600";
+                if (idx === 0) badgeColor = "bg-amber-400 text-white";
+                else if (idx === 1) badgeColor = "bg-gray-300 text-gray-700";
+                else if (idx === 2) badgeColor = "bg-amber-700 text-white";
+
+                html += `
+                <div class="p-3.5 flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-6 h-6 ${badgeColor} rounded-full flex items-center justify-center font-bold text-[10px]">${idx + 1}</span>
+                        <div>
+                            <p class="font-bold text-gray-900">${legend.name}</p>
+                            <p class="text-[10px] text-gray-500">UID: ${legend.uid}</p>
+                        </div>
+                    </div>
+                    <span class="font-extrabold text-emerald-600">Ksh ${legend.prize.toLocaleString()}</span>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function handleHostSubmit(e) {
+            e.preventDefault();
+            if (!currentUser || !userProfile) return;
+
+            const hostingCost = 50;
+            if (userProfile.balance < hostingCost) {
+                openAddBalanceModal();
+                return;
+            }
+
+            const fee = parseFloat(document.getElementById('host-fee').value);
+            const mode = document.getElementById('host-mode-type').value;
+            const maxPlayers = parseInt(document.getElementById('host-max-players').value);
+
+            userProfile.balance -= hostingCost;
+            await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
+            updateUIProfile();
+
+            const newT = {
+                name: `${userProfile.name}'s Tournament`,
+                host: userProfile.name,
+                hostUid: userProfile.uid,
+                mode,
+                entryFee: fee,
+                maxPlayers,
+                status: 'open',
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            try {
+                await rtdb.ref('tournaments').push(newT);
+                showToast('Tournament hosted successfully! Ksh 50 deducted.');
+                switchMode('join');
+            } catch (err) {
+                showToast('Error hosting tournament: ' + err.message);
+            }
+        }
+
+        function openDetailsModal(id) {
+            selectedTournamentId = id;
+            const t = tournaments.find(item => item.id === id);
+            if (t) {
+                updateDetailsModalContent(t);
+                document.getElementById('details-modal').classList.remove('hidden');
+            }
+        }
+
+        function updateDetailsModalContent(t) {
+            const playersArray = t.players ? Object.values(t.players) : [];
+
+            document.getElementById('detail-modal-mode').innerText = `CODM - ${t.mode}`;
+            document.getElementById('detail-modal-title').innerText = t.name;
+            document.getElementById('detail-modal-host').innerText = t.host;
+            document.getElementById('detail-modal-fee').innerText = `Ksh ${t.entryFee}`;
+            document.getElementById('detail-modal-players').innerText = `${playersArray.length} / ${t.maxPlayers} Players`;
+            document.getElementById('detail-modal-status').innerText = t.status.toUpperCase();
+
+            const totalPool = t.entryFee * t.maxPlayers;
+            const winnerShare = Math.round(totalPool * 0.60);
+            const organizerShare = Math.round(totalPool * 0.25);
+            const systemShare = totalPool - winnerShare - organizerShare;
+
+            document.getElementById('detail-total-pool').innerText = `Ksh ${totalPool.toLocaleString()}`;
+            document.getElementById('detail-winner-share').innerText = `Ksh ${winnerShare.toLocaleString()}`;
+            document.getElementById('detail-organizer-share').innerText = `Ksh ${organizerShare.toLocaleString()}`;
+            document.getElementById('detail-system-share').innerText = `Ksh ${systemShare.toLocaleString()}`;
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        function openJoinModal(id) {
+            const t = tournaments.find(item => item.id === id);
+            if (t && userProfile) {
+                selectedTournamentId = id;
+                const totalPool = t.entryFee * t.maxPlayers;
+                const winnerShare = Math.round(totalPool * 0.60);
+
+                document.getElementById('modal-fee-amount').innerText = `Ksh ${t.entryFee}`;
+                document.getElementById('modal-winner-share').innerText = `Ksh ${winnerShare.toLocaleString()}`;
+                document.getElementById('modal-user-name').innerText = userProfile.name;
+                document.getElementById('modal-user-uid').innerText = userProfile.uid || "1234567890";
+                document.getElementById('join-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeJoinModal() {
+            document.getElementById('join-modal').classList.add('hidden');
+        }
+
+        async function confirmJoin() {
+            if (!currentUser || !userProfile || !selectedTournamentId) return;
+            const tRef = rtdb.ref('tournaments/' + selectedTournamentId);
+
+            tRef.once('value', async (snapshot) => {
+                const tData = snapshot.val();
+                if (!tData) {
+                    showToast("Tournament does not exist!");
+                    closeJoinModal();
+                    return;
+                }
+
+                if (tData.status !== 'open') {
+                    showToast("Registration for this tournament is closed!");
+                    closeJoinModal();
+                    return;
+                }
+
+                if (userProfile.balance < tData.entryFee) {
+                    closeJoinModal();
+                    openAddBalanceModal();
+                    return;
+                }
+
+                let players = tData.players ? Object.values(tData.players) : [];
+                if (players.some(p => p.uid === userProfile.uid)) {
+                    showToast("You already joined this tournament!");
+                    closeJoinModal();
+                    return;
+                }
+
+                userProfile.balance -= tData.entryFee;
+                
+                try {
+                    await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
+                    await rtdb.ref('tournaments/' + selectedTournamentId + '/players').push({
+                        name: userProfile.name,
+                        uid: userProfile.uid
+                    });
+
+                    updateUIProfile();
+                    closeJoinModal();
+                    showToast('Successfully joined tournament!');
+                } catch (err) {
+                    closeJoinModal();
+                    showToast('Error joining: ' + err.message);
+                }
+            });
+        }
+
+        function openViewModal(id) {
+            selectedTournamentId = id;
+            const t = tournaments.find(item => item.id === id);
+            if (t) {
+                updateViewModalContent(t);
+                document.getElementById('view-modal').classList.remove('hidden');
+            }
+        }
+
+        function updateViewModalContent(t) {
+            const playersArray = t.players ? Object.values(t.players) : [];
+            const totalPool = t.entryFee * t.maxPlayers;
+            const winnerShare = Math.round(totalPool * 0.60);
+
+            document.getElementById('view-modal-title').innerText = `${t.name} (${playersArray.length}/${t.maxPlayers}) — Win Pool: Ksh ${winnerShare.toLocaleString()}`;
+            
+            const subtitle = document.getElementById('match-status-subtitle');
+            const actionsContainer = document.getElementById('host-actions-container');
+
+            if (t.status === 'open') {
+                subtitle.innerText = "Status: Open for Registration";
+                actionsContainer.innerHTML = `
+                <button onclick="updateTournamentStatus('closed')" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm">
+                    Close Registration
+                </button>`;
+            } else if (t.status === 'closed') {
+                subtitle.innerText = "Status: Registration Closed 🔒";
+                actionsContainer.innerHTML = `
+                <div class="flex space-x-2">
+                    <button onclick="updateTournamentStatus('open')" class="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold text-xs transition-all">
+                        Reopen
+                    </button>
+                    <button onclick="updateTournamentStatus('started')" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm">
+                        Start Match
+                    </button>
+                </div>`;
+            } else if (t.status === 'started') {
+                subtitle.innerText = "Status: Match In Progress 🎮";
+                actionsContainer.innerHTML = `
+                <button onclick="promptDeclareWinner()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm">
+                    🏆 Declare Winner
+                </button>`;
+            } else if (t.status === 'completed') {
+                subtitle.innerText = `Status: Completed 🏆 Winner: ${t.winnerName || 'Declared'}`;
+                actionsContainer.innerHTML = `
+                <div class="text-center py-2 bg-gray-100 text-gray-500 rounded-xl text-xs font-semibold">
+                    Match Concluded & Shares Distributed
+                </div>`;
+            }
+
+            const container = document.getElementById('participants-list');
+            if (playersArray.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-xs text-gray-400">No players have joined yet.</div>`;
+            } else {
+                let html = '';
+                playersArray.forEach((p, idx) => {
+                    const rowId = `player-row-${idx}`;
+                    html += `
+                    <div id="${rowId}" class="flex items-center justify-between bg-gray-50 p-3.5 rounded-xl border border-gray-200 text-xs transition-all">
+                        <div class="flex items-center space-x-3 flex-1 player-content transition-all">
+                            <span class="font-bold text-gray-500 w-5 text-right">${idx + 1}.</span>
+                            <input type="checkbox" onchange="toggleStrike('${rowId}', this.checked)" class="w-4 h-4 accent-black cursor-pointer">
+                            <div>
+                                <span class="font-bold text-gray-800 text-sm">${p.name}</span>
+                                <span class="block text-xs text-gray-500 mt-0.5">UID: <code class="bg-gray-200 px-1.5 py-0.5 rounded font-mono">${p.uid}</code></span>
+                            </div>
+                        </div>
+                        <button onclick="copyUid(this, '${p.uid}')" class="px-3.5 py-1.5 bg-black text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-all">Copy</button>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('view-modal').classList.add('hidden');
+            selectedTournamentId = null;
+        }
+
+        async function updateTournamentStatus(status) {
+            if (!selectedTournamentId) return;
+
+            if (status === 'started') {
+                const t = tournaments.find(item => item.id === selectedTournamentId);
+                const playersArray = t && t.players ? Object.values(t.players) : [];
+                if (playersArray.length < 2) {
+                    showCustomAlert("You need at least 2 players joined to start this match.");
+                    return;
+                }
+            }
+
+            try {
+                await rtdb.ref('tournaments/' + selectedTournamentId).update({ status });
+                showToast(`Tournament status updated to: ${status}`);
+            } catch (err) {
+                showToast('Error updating status: ' + err.message);
+            }
+        }
+
+        function promptDeclareWinner() {
+            if (!selectedTournamentId) return;
+            const t = tournaments.find(item => item.id === selectedTournamentId);
+            if (!t) return;
+
+            const pool = t.entryFee * t.maxPlayers;
+            const winnerShare = Math.round(pool * 0.60);
+            const organizerShare = Math.round(pool * 0.25);
+            const systemShare = pool - winnerShare - organizerShare;
+
+            document.getElementById('winner-pool-text').innerText = `Ksh ${pool.toLocaleString()}`;
+            document.getElementById('split-winner-text').innerText = `Ksh ${winnerShare.toLocaleString()}`;
+            document.getElementById('split-organizer-text').innerText = `Ksh ${organizerShare.toLocaleString()}`;
+            document.getElementById('split-system-text').innerText = `Ksh ${systemShare.toLocaleString()}`;
+
+            const playersArray = t.players ? Object.values(t.players) : [];
+            const container = document.getElementById('winner-select-list');
+
+            if (playersArray.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">No participants found.</div>`;
+                return;
+            }
+
+            let html = '';
+            playersArray.forEach((p) => {
+                html += `
+                <div onclick="confirmAndDeclareWinner('${p.name}', '${p.uid}', ${pool})" class="flex items-center justify-between p-3 bg-gray-50 hover:bg-black hover:text-white rounded-xl border border-gray-200 cursor-pointer transition-all group">
+                    <div>
+                        <p class="font-bold text-xs">${p.name}</p>
+                        <p class="text-[10px] text-gray-400 group-hover:text-gray-300">UID: ${p.uid}</p>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-600 group-hover:text-emerald-400">Select Winner ➔</span>
+                </div>`;
+            });
+            container.innerHTML = html;
+            document.getElementById('winner-modal').classList.remove('hidden');
+        }
+
+        function closeWinnerModal() {
+            document.getElementById('winner-modal').classList.add('hidden');
+        }
+
+        async function confirmAndDeclareWinner(winnerName, winnerUid, prizePool) {
+            const winnerShare = Math.round(prizePool * 0.60);
+            const organizerShare = Math.round(prizePool * 0.25);
+
+            if (!confirm(`Confirm winner ${winnerName}?\n• Winner Share: Ksh ${winnerShare.toLocaleString()}\n• Organizer Share: Ksh ${organizerShare.toLocaleString()}`)) {
+                return;
+            }
+
+            if (!selectedTournamentId) return;
+            try {
+                const t = tournaments.find(item => item.id === selectedTournamentId);
+                const hostUid = t ? t.hostUid : null;
+
+                const usersSnap = await rtdb.ref('users').once('value');
+                const usersData = usersSnap.val();
+
+                let winnerUserKey = null;
+                let currentWinnerBalance = 0;
+                let organizerUserKey = null;
+                let currentOrganizerBalance = 0;
+
+                if (usersData) {
+                    Object.keys(usersData).forEach(key => {
+                        if (usersData[key].uid === winnerUid) {
+                            winnerUserKey = key;
+                            currentWinnerBalance = usersData[key].balance || 0;
+                        }
+                        if (key === hostUid || usersData[key].uid === hostUid) {
+                            organizerUserKey = key;
+                            currentOrganizerBalance = usersData[key].balance || 0;
+                        }
+                    });
+                }
+
+                if (winnerUserKey) {
+                    await rtdb.ref('users/' + winnerUserKey).update({ balance: currentWinnerBalance + winnerShare });
+                }
+
+                if (organizerUserKey) {
+                    await rtdb.ref('users/' + organizerUserKey).update({ balance: currentOrganizerBalance + organizerShare });
+                }
+
+                await rtdb.ref('tournaments/' + selectedTournamentId).update({
+                    status: 'completed',
+                    winnerName,
+                    winnerUid
+                });
+
+                await rtdb.ref('hallOfFame').push({
+                    name: winnerName,
+                    uid: winnerUid,
+                    prize: winnerShare,
+                    awardedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                closeWinnerModal();
+                closeViewModal();
+                showToast(`🏆 Winner: ${winnerName} (Ksh ${winnerShare.toLocaleString()}) & Host rewarded!`);
+            } catch (err) {
+                showToast('Error declaring winner: ' + err.message);
+            }
+        }
+
+        function copyUid(btn, uid) {
+            navigator.clipboard.writeText(uid).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Copied! ✓";
+                btn.classList.remove('bg-black', 'hover:bg-gray-800');
+                btn.classList.add('bg-emerald-600');
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('bg-emerald-600');
+                    btn.classList.add('bg-black', 'hover:bg-gray-800');
+                }, 2000);
+            }).catch(() => {
+                showToast('Failed to copy UID');
+            });
+        }
+
+        function toggleStrike(rowId, isChecked) {
+            const row = document.getElementById(rowId);
+            const content = row.querySelector('.player-content');
+            if (isChecked) {
+                content.classList.add('line-through', 'text-gray-400', 'opacity-60');
+                row.classList.add('bg-gray-100');
+            } else {
+                content.classList.remove('line-through', 'text-gray-400', 'opacity-60');
+                row.classList.remove('bg-gray-100');
+            }
+        }
+    </script>
+</body>
+</html>
