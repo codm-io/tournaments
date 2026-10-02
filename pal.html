@@ -681,7 +681,7 @@
             document.getElementById('palpluss-pay-iframe').src = '';
         }
 
-        // Listen for postMessage events coming from the PalPluss iframe
+        // Direct Firebase balance update when PAYMENT_SUCCESS postMessage is received
         window.addEventListener('message', async function(e) {
             if (!e.data || typeof e.data !== 'object') return;
             if (e.origin !== 'https://link.palpluss.com') return;
@@ -699,7 +699,7 @@
                 closePalPlussWidget();
                 showToast(`Payment verified! Adding Ksh ${amountPaid.toLocaleString()} to balance.`);
 
-                // Update user balance in Firebase RTDB
+                // Update user balance directly in Firebase RTDB
                 if (currentUser && userProfile) {
                     userProfile.balance = (userProfile.balance || 0) + amountPaid;
                     try {
