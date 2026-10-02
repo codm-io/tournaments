@@ -481,8 +481,8 @@
         let tempRegData = {};
         let isAuthenticating = false;
 
-        // Your PalPluss Paylink ID
-        const PALPLUSS_PAYLINK_ID = "772a4e5d-f032-4511-a250-9b5b99e8e43f";
+        // Updated PalPluss Paylink URL
+        const PALPLUSS_PAYLINK_URL = "https://link.palpluss.com/27508de8-6e11-4761-95eb-e135178f830c";
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -656,12 +656,12 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        // Open PalPluss Widget Paylink Flow using your exact link and reference parameter
+        // Open PalPluss Widget Paylink Flow using the updated URL and reference parameter
         function openPalPlussWidget() {
             closeAddBalanceModal();
             
             const iframe = document.getElementById('palpluss-iframe');
-            iframe.src = `https://pay.palpluss.com/paylink/${PALPLUSS_PAYLINK_ID}?reference=TOPUP-${currentUser.uid}`;
+            iframe.src = `${PALPLUSS_PAYLINK_URL}?reference=TOPUP-${currentUser.uid}`;
             
             document.getElementById('palpluss-widget-modal').classList.remove('hidden');
         }
