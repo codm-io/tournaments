@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PalPluss Realtime Database Dashboard</title>
+    <title>PalPluss Frontend-Only Realtime Dashboard</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PalPluss Paylink Browser SDK -->
-    <script type="module">
-        import { pay } from 'https://cdn.jsdelivr.net/npm/@palpluss/paylink/+esm';
-        window.palplussPay = pay;
-    </script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
 
@@ -59,7 +54,7 @@
             <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-700">
                 <div>
                     <h2 class="text-2xl font-bold">Account Dashboard</h2>
-                    <p class="text-slate-400 text-sm">Real-time status and balance tracking via Realtime Database</p>
+                    <p class="text-slate-400 text-sm">Direct frontend sync via Realtime Database</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -90,11 +85,11 @@
             <!-- Action Area -->
             <div class="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
-                    <h4 class="font-bold text-indigo-200">Make Real Payment</h4>
-                    <p class="text-sm text-indigo-300/70">Triggers PalPluss payment window. Updates balance on success.</p>
+                    <h4 class="font-bold text-indigo-200">PalPluss Direct Checkout</h4>
+                    <p class="text-sm text-indigo-300/70">Opens payment window and updates database instantly on success.</p>
                 </div>
                 <button id="pay-btn" onclick="startPalplussPayment()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95">
-                    Pay Now (KES 1,000)
+                    Pay Now
                 </button>
             </div>
         </section>
@@ -186,30 +181,31 @@
             await signOut(auth);
         }
 
-        // Launch PalPluss Payment Modal and Update Firebase on Success
+        // Launch PalPluss Widget & Update Realtime DB Directly on Success
         window.startPalplussPayment = async function() {
             const user = auth.currentUser;
             if (!user) return;
 
-            // Replace with your actual Paylink UUID generated from your PalPluss Console
-            const paylinkId = "YOUR_PALPLUSS_PAYLINK_ID"; 
+            // Your actual Paylink ID UUID
+            const paylinkId = "772a4e5d-f032-4511-a250-9b5b99e8e43f"; 
 
+            const payBtn = document.getElementById('pay-btn');
+            
             try {
-                const payBtn = document.getElementById('pay-btn');
-                payBtn.innerText = "Processing Payment...";
+                payBtn.innerText = "Opening Payment Window...";
                 payBtn.disabled = true;
 
-                // Opens the PalPluss widget modal and awaits completion
+                // Await the widget modal completion directly on frontend
                 const result = await pay(paylinkId);
                 
-                // result returns { txId, amount, phone } upon successful payment
+                // If payment succeeds, result contains { txId, amount, phone }
                 if (result && result.txId) {
                     const userRef = ref(db, 'users/' + user.uid);
                     
-                    // Atomically add amount and update status to 'paid' in Firebase Realtime Database
+                    // Directly write/increment the balance and update status to 'paid' in Realtime DB
                     await runTransaction(userRef, (currentData) => {
                         if (currentData) {
-                            currentData.balance = (Number(currentData.balance) || 0) + Number(result.amount || 1000);
+                            currentData.balance = (Number(currentData.balance) || 0) + Number(result.amount || 0);
                             currentData.status = "paid";
                             currentData.lastTxId = result.txId;
                             currentData.lastUpdated = new Date().toISOString();
@@ -217,13 +213,12 @@
                         return currentData;
                     });
                     
-                    alert("Payment successful! Reference: " + result.txId);
+                    alert("Payment confirmed! Ref: " + result.txId);
                 }
             } catch (error) {
-                console.log("Payment cancelled or closed by user:", error);
+                console.log("Payment modal closed or cancelled by user.");
             } finally {
-                const payBtn = document.getElementById('pay-btn');
-                payBtn.innerText = "Pay Now (KES 1,000)";
+                payBtn.innerText = "Pay Now";
                 payBtn.disabled = false;
             }
         }
