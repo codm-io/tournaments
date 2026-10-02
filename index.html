@@ -147,7 +147,7 @@
                 Log Out
             </button>
             <div class="text-center text-[10px] text-gray-400">
-                CODM Tournaments v4.4
+                CODM Tournaments v4.5
             </div>
         </div>
     </div>
@@ -226,7 +226,7 @@
             </form>
         </div>
 
-        <!-- Section: Community Feed (Chat stream style: New items at the bottom, WhatsApp-like fixed input bar) -->
+        <!-- Section: Community Feed -->
         <div id="section-community" class="space-y-4 hidden pb-24">
             <div class="flex items-center justify-between">
                 <div>
@@ -236,14 +236,14 @@
                 <span class="text-xs bg-black text-white px-2.5 py-1 rounded-full font-bold">Feed</span>
             </div>
 
-            <!-- Tweets Feed List (Newest messages at bottom) -->
+            <!-- Tweets Feed List -->
             <div id="tweets-list" class="space-y-3">
                 <!-- Dynamically populated tweets -->
             </div>
 
             <!-- Fixed WhatsApp-style bottom input bar with active reply banner -->
             <div class="fixed bottom-14 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-200 p-2.5 max-w-md mx-auto z-30 shadow-lg space-y-1.5">
-                <!-- Reply Context Banner (Hidden by default) -->
+                <!-- Reply Context Banner -->
                 <div id="reply-banner" class="hidden flex items-center justify-between bg-gray-100 px-3 py-1.5 rounded-lg border-l-4 border-black text-[11px]">
                     <div class="truncate text-gray-700">
                         Replying to <strong id="replying-to-name" class="text-black">User</strong>
@@ -494,7 +494,7 @@
         let tournaments = [];
         let tweets = [];
         let selectedTournamentId = null;
-        let replyingToUser = null; // Stores target username for replies
+        let replyingToUser = null;
         let tempRegData = {};
         let isAuthenticating = false;
 
@@ -825,7 +825,6 @@
                     Object.keys(data).forEach(key => {
                         tweets.push({ id: key, ...data[key] });
                     });
-                    // Sort ascending so newer messages appear at the bottom like a chat
                     tweets.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
                 }
                 renderCommunityFeed();
@@ -854,7 +853,6 @@
             let content = textInput.value.trim();
             if (!content) return;
 
-            // If replying to someone, prepend mention reference format
             if (replyingToUser) {
                 content = `@${replyingToUser} ${content}`;
             }
@@ -888,6 +886,13 @@
             }
         }
 
+        // Helper to colorize @mentions in message text
+        function formatMessageContent(text) {
+            const escaped = escapeHtml(text);
+            // Replaces patterns like @Sammy with a styled highlighted badge
+            return escaped.replace(/(@[a-zA-Z0-9_]+)/g, '<span class="bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded">$1</span>');
+        }
+
         function renderCommunityFeed() {
             const list = document.getElementById('tweets-list');
             if (!list) return;
@@ -901,6 +906,7 @@
             tweets.forEach(post => {
                 const initial = post.authorName ? post.authorName.charAt(0).toUpperCase() : 'P';
                 const timeAgo = post.createdAt ? new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                const formattedContent = formatMessageContent(post.content);
 
                 html += `
                 <div class="bg-white border border-gray-200 hover:border-gray-300 rounded-xl p-3.5 space-y-2.5 shadow-sm transition-all">
@@ -919,7 +925,7 @@
                         </div>
                     </div>
 
-                    <p class="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap break-words pl-10">${escapeHtml(post.content)}</p>
+                    <p class="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap break-words pl-10">${formattedContent}</p>
 
                     <div class="flex items-center space-x-6 pl-10 pt-1 text-[11px] text-gray-500">
                         <button onclick="likeTweet('${post.id}', ${post.likes || 0})" class="flex items-center space-x-1.5 hover:text-red-500 transition-colors group">
