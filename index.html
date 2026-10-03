@@ -13,7 +13,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-between pb-20">
 
-    <!-- Global App Loading Screen Overlay -->
     <div id="app-loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center space-y-4 transition-opacity duration-300">
         <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-xl animate-pulse">
             🎯
@@ -25,7 +24,6 @@
         <div class="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
     </div>
 
-    <!-- Auth Screens Container -->
     <div id="auth-container" class="fixed inset-0 bg-white z-50 flex items-center justify-center p-4 hidden">
         <div class="w-full max-w-sm space-y-6">
             <div class="text-center space-y-1">
@@ -104,7 +102,6 @@
         </div>
     </div>
 
-    <!-- Application Header -->
     <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
         <div class="flex items-center space-x-2">
             <button onclick="toggleSidebar()" class="p-1 text-gray-700 hover:text-black focus:outline-none">
@@ -126,7 +123,6 @@
         </div>
     </header>
 
-    <!-- Sidebar Menu Overlay -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity" onclick="toggleSidebar()"></div>
     <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
         <div class="p-4 border-b flex justify-between items-center">
@@ -147,12 +143,11 @@
                 Log Out
             </button>
             <div class="text-center text-[10px] text-gray-400">
-                CODM Tournaments v4.9
+                CODM Tournaments v5.0
             </div>
         </div>
     </div>
 
-    <!-- Main Content Area -->
     <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 space-y-6">
 
         <!-- Toast Notification Box -->
@@ -267,7 +262,6 @@
 
     </main>
 
-    <!-- Modals & Popups -->
     <div id="custom-alert-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-[99]">
         <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
@@ -393,24 +387,33 @@
         </div>
     </div>
 
-    <!-- Add Balance Modal -->
+    <!-- Add Balance Modal with 30ksh, 50ksh, 100ksh PalPluss Paylink Options -->
     <div id="add-balance-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-[80]">
-        <div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
             <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
                 💳
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-bold text-gray-900">Top Up Balance</h3>
-                <p class="text-xs text-gray-500">Fund your account via PalPluss:</p>
+                <p class="text-xs text-gray-500">Select top up amount via PalPluss:</p>
             </div>
             
-            <div class="pt-2">
-                <button id="palpluss-pay-btn" onclick="startPalplussPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                    Top Up via PalPluss
+            <div class="grid grid-cols-3 gap-2 pt-1">
+                <button onclick="startPalplussPayment(30, '2ee6a24f-cd48-4470-83a6-615b3819cdf8')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
+                    <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
+                    <span class="text-sm">30</span>
+                </button>
+                <button onclick="startPalplussPayment(50, '18801a2f-a08d-4a65-b7e5-45572214456f')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
+                    <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
+                    <span class="text-sm">50</span>
+                </button>
+                <button onclick="startPalplussPayment(100, 'cf2dba75-14f4-4cca-b3b0-49cad54a9f90')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
+                    <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
+                    <span class="text-sm">100</span>
                 </button>
             </div>
 
-            <button onclick="closeAddBalanceModal()" class="w-full py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-200 transition-all">
+            <button onclick="closeAddBalanceModal()" class="w-full py-2.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-200 transition-all mt-2">
                 Cancel
             </button>
         </div>
@@ -448,7 +451,6 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation Bar -->
     <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40 max-w-md mx-auto flex justify-around py-2 shadow-lg">
         <button onclick="switchMode('join')" id="nav-btn-join" class="flex flex-col items-center justify-center flex-1 text-black font-bold">
             <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -464,7 +466,6 @@
         </button>
     </nav>
 
-    <!-- Firebase SDK (compat mode) & PalPluss Paylink SDK module -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -497,9 +498,7 @@
         let replyingToUser = null;
         let tempRegData = {};
         let isAuthenticating = false;
-        let isSubmittingPost = false; // Guard flag to prevent double-submitting
-
-        const PALPLUSS_PAYLINK_ID = "a4c3f10d-01ec-4b34-882a-a2de494320bd";
+        let isSubmittingPost = false;
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -674,22 +673,18 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        async function startPalplussPayment() {
+        async function startPalplussPayment(amount, paylinkId) {
             if (!currentUser || !window.palplussPaySdk) {
                 showToast("Payment SDK not ready or user not signed in.");
                 return;
             }
 
-            const payBtn = document.getElementById('palpluss-pay-btn');
-
             try {
-                payBtn.innerText = "Opening Payment Window...";
-                payBtn.disabled = true;
-
-                const result = await window.palplussPaySdk(PALPLUSS_PAYLINK_ID);
+                showToast(`Opening PalPluss for Ksh ${amount}...`);
+                const result = await window.palplussPaySdk(paylinkId);
 
                 if (result && result.txId) {
-                    const depositAmount = Number(result.amount) || 0;
+                    const depositAmount = Number(amount) || Number(result.amount) || 0;
                     const userRef = rtdb.ref('users/' + currentUser.uid);
 
                     await userRef.transaction((currentData) => {
@@ -706,9 +701,6 @@
                 }
             } catch (error) {
                 console.log("Payment window closed or cancelled.");
-            } finally {
-                payBtn.innerText = "Top Up via PalPluss";
-                payBtn.disabled = false;
             }
         }
 
