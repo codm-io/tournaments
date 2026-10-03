@@ -147,7 +147,7 @@
                 Log Out
             </button>
             <div class="text-center text-[10px] text-gray-400">
-                CODM Tournaments v5.0
+                CODM Tournaments v4.9
             </div>
         </div>
     </div>
@@ -401,17 +401,17 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-bold text-gray-900">Top Up Balance</h3>
-                <p class="text-xs text-gray-500">Select top up amount via PalPluss:</p>
+                <p class="text-xs text-gray-500">Select amount to top up via PalPluss:</p>
             </div>
             
-            <div class="space-y-2 pt-2">
-                <button id="palpluss-pay-30-btn" onclick="startPalplussPayment(30)" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+            <div class="space-y-2 pt-1">
+                <button id="palpluss-pay-btn-30" onclick="startPalplussPayment('30')" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
                     Top Up Ksh 30
                 </button>
-                <button id="palpluss-pay-50-btn" onclick="startPalplussPayment(50)" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                <button id="palpluss-pay-btn-50" onclick="startPalplussPayment('50')" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
                     Top Up Ksh 50
                 </button>
-                <button id="palpluss-pay-100-btn" onclick="startPalplussPayment(100)" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                <button id="palpluss-pay-btn-100" onclick="startPalplussPayment('100')" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
                     Top Up Ksh 100
                 </button>
             </div>
@@ -472,7 +472,7 @@
 
     <!-- Firebase SDK (compat mode) & PalPluss Paylink SDK module -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-authHere is the updated code with the tournament entry fee options configured with your specific PalPluss payment links for **Ksh 30**, **Ksh 50**, and **Ksh 100**.
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-Here is the complete HTML file updated with specific PalPluss paylinks mapped to each hosting fee option (**Ksh 30**, **Ksh 50**, and **Ksh 100**). When a user selects a specific hosting fee, the application automatically dynamically selects the correct paylink ID for the payment transaction.
 
 ```html
 <!DOCTYPE html>
@@ -526,74 +526,3 @@
                 <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
                     Log In
                 </button>
-                <div class="text-center pt-2">
-                    <button type="button" onclick="toggleAuthMode('register-step1')" class="text-xs text-gray-600 font-medium hover:underline">
-                        Don't have an account? <span class="text-black font-bold">Register</span>
-                    </button>
-                </div>
-            </form>
-
-            <!-- Register Step 1 -->
-            <form id="form-register-step1" onsubmit="handleRegisterStep1(event)" class="space-y-3.5 hidden">
-                <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
-                    Step 1 of 2: Phone & Password
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
-                    <input type="tel" id="reg-phone" required placeholder="e.g. +254712345678" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
-                    <input type="password" id="reg-password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
-                </div>
-                <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
-                    Next: Gaming Profile ➔
-                </button>
-                <div class="text-center pt-2">
-                    <button type="button" onclick="toggleAuthMode('login')" class="text-xs text-gray-600 font-medium hover:underline">
-                        Already have an account? <span class="text-black font-bold">Log In</span>
-                    </button>
-                </div>
-            </form>
-
-            <!-- Register Step 2 -->
-            <form id="form-register-step2" onsubmit="handleRegisterStep2(event)" class="space-y-3.5 hidden">
-                <div class="text-[11px] text-gray-500 bg-gray-100 p-2 rounded-lg text-center mb-1">
-                    Step 2 of 2: In-Game Identity
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">In-Game Name (IGN)</label>
-                    <input type="text" id="reg-name" required placeholder="e.g. Sammy" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">CODM UID</label>
-                    <input type="text" id="reg-uid" required placeholder="e.g. 6748392019" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
-                </div>
-                <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
-                    Complete & Get Ksh 1,500 Bonus
-                </button>
-                <div class="text-center pt-2">
-                    <button type="button" onclick="toggleAuthMode('register-step1')" class="text-xs text-gray-600 font-medium hover:underline">
-                        ⬅ Back to Step 1
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Application Header -->
-    <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
-        <div class="flex items-center space-x-2">
-            <button onclick="toggleSidebar()" class="p-1 text-gray-700 hover:text-black focus:outline-none">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
-            <div class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold">
-                🎯
-            </div>
-            <span class="text-xs font-bold text-gray-800" id="current-username">Player</span>
-        </div>
-
-        <div class="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
-            <span class="text-xs font-semibold text-
