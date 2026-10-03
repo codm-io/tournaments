@@ -401,18 +401,12 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-bold text-gray-900">Top Up Balance</h3>
-                <p class="text-xs text-gray-500">Select an amount to top up via PalPluss:</p>
+                <p class="text-xs text-gray-500">Fund your account via PalPluss:</p>
             </div>
             
-            <div class="space-y-2 pt-1">
-                <button onclick="startPalplussPayment('30', '2ee6a24f-cd48-4470-83a6-615b3819cdf8')" id="palpluss-btn-30" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                    Top Up Ksh 30
-                </button>
-                <button onclick="startPalplussPayment('50', '18801a2f-a08d-4a65-b7e5-45572214456f')" id="palpluss-btn-50" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                    Top Up Ksh 50
-                </button>
-                <button onclick="startPalplussPayment('100', 'cf2dba75-14f4-4cca-b3b0-49cad54a9f90')" id="palpluss-btn-100" class="w-full py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                    Top Up Ksh 100
+            <div class="pt-2">
+                <button id="palpluss-pay-btn" onclick="startPalplussPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                    Top Up via PalPluss
                 </button>
             </div>
 
@@ -504,6 +498,8 @@
         let tempRegData = {};
         let isAuthenticating = false;
         let isSubmittingPost = false; // Guard flag to prevent double-submitting
+
+        const PALPLUSS_PAYLINK_ID = "a4c3f10d-01ec-4b34-882a-a2de494320bd";
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -678,24 +674,22 @@
             document.getElementById('add-balance-modal').classList.add('hidden');
         }
 
-        async function startPalplussPayment(amountStr, paylinkId) {
+        async function startPalplussPayment() {
             if (!currentUser || !window.palplussPaySdk) {
                 showToast("Payment SDK not ready or user not signed in.");
                 return;
             }
 
-            const depositAmount = Number(amountStr);
-            const activeBtn = document.getElementById(`palpluss-btn-${amountStr}`);
+            const payBtn = document.getElementById('palpluss-pay-btn');
 
             try {
-                if (activeBtn) {
-                    activeBtn.innerText = `Opening Ksh ${amountStr} Payment...`;
-                    activeBtn.disabled = true;
-                }
+                payBtn.innerText = "Opening Payment Window...";
+                payBtn.disabled = true;
 
-                const result = await window.palplussPaySdk(paylinkId);
+                const result = await window.palplussPaySdk(PALPLUSS_PAYLINK_ID);
 
                 if (result && result.txId) {
+                    const depositAmount = Number(result.amount) || 0;
                     const userRef = rtdb.ref('users/' + currentUser.uid);
 
                     await userRef.transaction((currentData) => {
@@ -713,10 +707,8 @@
             } catch (error) {
                 console.log("Payment window closed or cancelled.");
             } finally {
-                if (activeBtn) {
-                    activeBtn.innerText = `Top Up Ksh ${amountStr}`;
-                    activeBtn.disabled = false;
-                }
+                payBtn.innerText = "Top Up via PalPluss";
+                payBtn.disabled = false;
             }
         }
 
