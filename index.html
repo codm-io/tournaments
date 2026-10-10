@@ -13,6 +13,19 @@
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-between pb-20">
 
+    <!-- Toast Notification Box (Positioned at the top center of the screen) -->
+    <div id="toast" class="hidden fixed top-4 inset-x-0 mx-auto max-w-xs bg-gray-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl text-center z-[110] transition-all">
+        Action completed successfully!
+    </div>
+
+    <!-- Floating Follow WhatsApp Channel Button -->
+    <a href="https://whatsapp.com/channel/0029VbDjQwwBFLgYRRh0lp29" target="_blank" rel="noopener noreferrer" id="floating-follow-btn" class="fixed bottom-20 right-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-full shadow-2xl flex items-center space-x-2 z-40 transition-transform hover:scale-105 active:scale-95">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+        </svg>
+        <span>Follow Channel</span>
+    </a>
+
     <div id="app-loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center space-y-4 transition-opacity duration-300">
         <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-xl animate-pulse">
             🎯
@@ -84,14 +97,14 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">In-Game Name (IGN)</label>
-                    <input type="text" id="reg-name" required placeholder="e.g. Sammy" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
+                    <input type="text" id="reg-name" required placeholder="e.g. Etn Lotex" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">CODM UID</label>
                     <input type="text" id="reg-uid" required placeholder="e.g. 6748392019" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black">
                 </div>
                 <button type="submit" class="w-full py-3 bg-black text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition-all shadow-md">
-                    Complete & Get Ksh 1,500 Bonus
+                    Complete Registration
                 </button>
                 <div class="text-center pt-2">
                     <button type="button" onclick="toggleAuthMode('register-step1')" class="text-xs text-gray-600 font-medium hover:underline">
@@ -116,7 +129,7 @@
         </div>
 
         <div class="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
-            <span class="text-xs font-semibold text-gray-700">Ksh <span id="user-balance">1,500</span></span>
+            <span class="text-xs font-semibold text-gray-700">Ksh <span id="user-balance">0</span></span>
             <button onclick="openAddBalanceModal()" class="w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-gray-800 transition-all">
                 +
             </button>
@@ -136,7 +149,7 @@
             </div>
             <a href="#" onclick="toggleSidebar(); switchMode('join');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Find Tournaments</a>
             <a href="#" onclick="toggleSidebar(); switchMode('host');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Host CODM Tournament</a>
-            <a href="#" onclick="toggleSidebar(); switchMode('community');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Community Feed</a>
+            <a href="#" onclick="toggleSidebar(); switchMode('community');" class="block p-2 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded">Community Chat</a>
         </div>
         <div class="p-4 border-t space-y-2">
             <button onclick="handleLogout()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-red-600 text-xs font-bold rounded-lg transition-all">
@@ -150,18 +163,13 @@
 
     <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 space-y-6">
 
-        <!-- Toast Notification Box -->
-        <div id="toast" class="hidden bg-gray-900 text-white text-xs px-4 py-3 rounded-lg shadow-lg text-center transition-all">
-            Action completed successfully!
-        </div>
-
         <!-- Section: Join Tournaments -->
         <div id="section-join" class="space-y-4">
             <div class="flex items-center justify-between">
-                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">CODM Active Tournaments</h2>
+                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Tournaments</h2>
                 <span id="tournament-count" class="text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-600 font-medium">0 active</span>
             </div>
-            <p class="text-[11px] text-gray-400">Tap a tournament card to inspect details & money split, or use the action buttons below each card.</p>
+            <p class="text-[11px] text-gray-400">Select any tournament card to view structural details and prize pool distribution, or use the quick action buttons.</p>
 
             <div id="tournaments-list" class="space-y-3">
                 <!-- Populated dynamically -->
@@ -171,8 +179,8 @@
         <!-- Section: Host Tournaments -->
         <div id="section-host" class="space-y-4 hidden">
             <div class="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] p-3 rounded-xl space-y-1">
-                <p>⚠ Hosting costs a fixed platform fee of <strong>Ksh 100</strong>.</p>
-                <p class="text-[10px] text-amber-700">Prize Pool Split: <strong>60% Winner</strong> | <strong>25% Organizer</strong> | <strong>15% System</strong></p>
+                <p>⚠ Hosting incurs a standard platform fee of <strong>Ksh 100</strong> deducted from your account balance.</p>
+                <p class="text-[10px] text-amber-700">Prize Pool Distribution: <strong>60% Winner</strong> | <strong>25% Organizer</strong> | <strong>15% System</strong></p>
             </div>
 
             <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Create CODM Tournament</h2>
@@ -221,14 +229,11 @@
             </form>
         </div>
 
-        <!-- Section: Community Feed -->
+        <!-- Section: Community Chat -->
         <div id="section-community" class="space-y-4 hidden pb-24">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">🌐 COMMUNITY</h2>
-                    <p class="text-[10px] text-gray-400">What's happening in the tournament zone</p>
-                </div>
-                <span class="text-xs bg-black text-white px-2.5 py-1 rounded-full font-bold">Feed</span>
+            <div>
+                <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wide">🌐 COMMUNITY CHAT</h2>
+                <p class="text-[10px] text-gray-400">What's happening in the tournament zone</p>
             </div>
 
             <!-- Tweets Feed List -->
@@ -269,10 +274,10 @@
             </div>
             <div class="space-y-1">
                 <h3 class="text-sm font-bold text-gray-900">Match Start Warning</h3>
-                <p id="custom-alert-message" class="text-xs text-gray-600 leading-relaxed">You need at least 2 players joined to start this match.</p>
+                <p id="custom-alert-message" class="text-xs text-gray-600 leading-relaxed">All slots must be filled before starting this match.</p>
             </div>
-            <button onclick="closeCustomAlert()" class="w-full py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                Got It
+            <button onclick="closeCustomAlert(); updateTournamentStatus('open');" class="w-full py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                Reopen Registration
             </button>
         </div>
     </div>
@@ -363,7 +368,7 @@
             </div>
 
             <button onclick="confirmJoin()" class="w-full py-2.5 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-all shadow-sm">
-                Join Tournament
+                Confirm & Continue
             </button>
         </div>
     </div>
@@ -387,7 +392,7 @@
         </div>
     </div>
 
-    <!-- Add Balance Modal with 30ksh, 50ksh, 100ksh PalPluss Paylink Options -->
+    <!-- Add Balance Modal with 100ksh PalPluss Paylink Option Only -->
     <div id="add-balance-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-[80]">
         <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl text-center transform transition-all">
             <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
@@ -399,13 +404,13 @@
             </div>
             
             <div class="grid grid-cols-3 gap-2 pt-1">
-                <button onclick="startPalplussPayment(30, '2ee6a24f-cd48-4470-83a6-615b3819cdf8')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
-                    <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
-                    <span class="text-sm">30</span>
+                <button disabled class="p-3 bg-gray-100 border border-gray-200 rounded-xl font-bold text-xs opacity-50 cursor-not-allowed">
+                    <span class="block text-gray-400 text-xs">Ksh</span>
+                    <span class="text-sm text-gray-400">30</span>
                 </button>
-                <button onclick="startPalplussPayment(50, '18801a2f-a08d-4a65-b7e5-45572214456f')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
-                    <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
-                    <span class="text-sm">50</span>
+                <button disabled class="p-3 bg-gray-100 border border-gray-200 rounded-xl font-bold text-xs opacity-50 cursor-not-allowed">
+                    <span class="block text-gray-400 text-xs">Ksh</span>
+                    <span class="text-sm text-gray-400">50</span>
                 </button>
                 <button onclick="startPalplussPayment(100, 'cf2dba75-14f4-4cca-b3b0-49cad54a9f90')" class="p-3 bg-gray-50 hover:bg-black hover:text-white border border-gray-200 rounded-xl font-bold text-xs transition-all shadow-sm group">
                     <span class="block text-emerald-600 group-hover:text-emerald-400 text-xs">Ksh</span>
@@ -462,7 +467,7 @@
         </button>
         <button onclick="switchMode('community')" id="nav-btn-community" class="flex flex-col items-center justify-center flex-1 text-gray-400 hover:text-black font-medium">
             <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-            <span class="text-[10px]">Community</span>
+            <span class="text-[10px]">Community Chat</span>
         </button>
     </nav>
 
@@ -499,6 +504,12 @@
         let tempRegData = {};
         let isAuthenticating = false;
         let isSubmittingPost = false;
+
+        const paylinkMapping = {
+            30: '2ee6a24f-cd48-4470-83a6-615b3819cdf8',
+            50: '18801a2f-a08d-4a65-b7e5-45572214456f',
+            100: 'cf2dba75-14f4-4cca-b3b0-49cad54a9f90'
+        };
 
         function hideLoadingScreen() {
             const loader = document.getElementById('app-loading-screen');
@@ -542,7 +553,7 @@
                         name: "Player",
                         uid: "1234567890",
                         phone: currentUser.email ? currentUser.email.split('@')[0] : '',
-                        balance: 1500
+                        balance: 0
                     };
                     userRef.set(userProfile);
                 }
@@ -627,7 +638,7 @@
                     name: name || "Player",
                     uid: uid || "1234567890",
                     phone: tempRegData.phone,
-                    balance: 1500
+                    balance: 0
                 };
                 await rtdb.ref('users/' + currentUser.uid).set(userProfile);
                 
@@ -636,7 +647,7 @@
                 setupRealtimeData();
                 hideLoadingScreen();
                 isAuthenticating = false;
-                showToast("Account created successfully! Ksh 1,500 added.");
+                showToast("Account created successfully!");
             } catch (error) {
                 isAuthenticating = false;
                 showToast("Error: " + error.message);
@@ -646,8 +657,7 @@
         async function handleLogout() {
             try {
                 await auth.signOut();
-                toggleSidebar();
-                showToast("Logged out successfully.");
+                window.location.reload();
             } catch (error) {
                 showToast("Error signing out");
             }
@@ -676,31 +686,16 @@
         async function startPalplussPayment(amount, paylinkId) {
             if (!currentUser || !window.palplussPaySdk) {
                 showToast("Payment SDK not ready or user not signed in.");
-                return;
+                return null;
             }
 
             try {
                 showToast(`Opening PalPluss for Ksh ${amount}...`);
                 const result = await window.palplussPaySdk(paylinkId);
-
-                if (result && result.txId) {
-                    const depositAmount = Number(amount) || Number(result.amount) || 0;
-                    const userRef = rtdb.ref('users/' + currentUser.uid);
-
-                    await userRef.transaction((currentData) => {
-                        if (currentData) {
-                            currentData.balance = (Number(currentData.balance) || 0) + depositAmount;
-                            currentData.lastTxId = result.txId;
-                            currentData.lastUpdated = new Date().toISOString();
-                        }
-                        return currentData;
-                    });
-
-                    closeAddBalanceModal();
-                    showToast(`Successfully deposited Ksh ${depositAmount.toLocaleString()}! Ref: ${result.txId}`);
-                }
+                return result;
             } catch (error) {
                 console.log("Payment window closed or cancelled.");
+                return null;
             }
         }
 
@@ -809,6 +804,13 @@
                     tournaments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 }
                 renderTournaments();
+
+                if (selectedTournamentId) {
+                    const currentT = tournaments.find(item => item.id === selectedTournamentId);
+                    if (currentT) {
+                        updateViewModalContent(currentT);
+                    }
+                }
             });
 
             rtdb.ref('communityPosts').on('value', (snapshot) => {
@@ -874,7 +876,7 @@
                 await rtdb.ref('communityPosts').push(newPost);
                 textInput.value = '';
                 cancelReply();
-                showToast("Posted to Community!");
+                showToast("Posted to Community Chat!");
                 scrollToNewest();
             } catch (err) {
                 showToast("Error posting: " + err.message);
@@ -885,12 +887,26 @@
         }
 
         async function likeTweet(postId, currentLikes) {
+            if (!currentUser || !userProfile) return;
+
+            const postLikeRef = rtdb.ref(`communityLikes/${postId}/${currentUser.uid}`);
+            
             try {
-                await rtdb.ref('communityPosts/' + postId).update({
-                    likes: (currentLikes || 0) + 1
-                });
+                const snapshot = await postLikeRef.once('value');
+                const hasLiked = snapshot.val();
+
+                if (hasLiked) {
+                    await postLikeRef.remove();
+                    const newLikes = Math.max(0, (currentLikes || 0) - 1);
+                    await rtdb.ref('communityPosts/' + postId).update({ likes: newLikes });
+                    showToast("Like removed");
+                } else {
+                    await postLikeRef.set(true);
+                    await rtdb.ref('communityPosts/' + postId).update({ likes: (currentLikes || 0) + 1 });
+                    showToast("Post liked!");
+                }
             } catch (err) {
-                console.log("Error liking post", err);
+                console.log("Error updating like status", err);
             }
         }
 
@@ -904,7 +920,7 @@
             if (!list) return;
 
             if (tweets.length === 0) {
-                list.innerHTML = `<div class="text-center py-10 bg-white border border-gray-200 rounded-xl text-xs text-gray-400">No community posts yet. Be the first to share something!</div>`;
+                list.innerHTML = `<div class="text-center py-10 bg-white border border-gray-200 rounded-xl text-xs text-gray-400">No messages in community chat yet. Be the first to start a discussion!</div>`;
                 return;
             }
 
@@ -989,19 +1005,19 @@
 
                 let cardActionButton = '';
                 if (t.status === 'completed') {
-                    cardActionButton = `<div class="w-full py-2 bg-purple-50 text-purple-700 rounded-lg text-center font-bold text-xs">Completed (Winner: ${t.winnerName || 'Declared'})</div>`;
+                    cardActionButton = `<span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg font-bold">Completed</span>`;
                 } else if (isHost) {
-                    cardActionButton = `<button onclick="openViewModal('${t.id}')" class="w-full py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Manage Match & Participants ➔</button>`;
+                    cardActionButton = `<button onclick="openViewModal('${t.id}')" class="px-3.5 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Manage</button>`;
                 } else if (hasJoined) {
-                    cardActionButton = `<div class="w-full py-2 bg-emerald-100 text-emerald-800 rounded-lg text-center font-bold text-xs">✓ You Have Joined</div>`;
+                    cardActionButton = `<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold">Joined ✓</span>`;
                 } else if (isFull || t.status !== 'open') {
-                    cardActionButton = `<div class="w-full py-2 bg-red-50 text-red-600 rounded-lg text-center font-bold text-xs">Registration Closed / Full</div>`;
+                    cardActionButton = `<span class="text-[10px] bg-red-50 text-red-600 px-2.5 py-1 rounded-lg font-medium">Closed</span>`;
                 } else {
-                    cardActionButton = `<button onclick="openJoinModal('${t.id}')" class="w-full py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Join Tournament (Ksh ${t.entryFee})</button>`;
+                    cardActionButton = `<button onclick="openJoinModal('${t.id}')" class="px-5 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg font-bold text-xs transition-all shadow-sm">Join</button>`;
                 }
 
                 html += `
-                <div class="bg-white border border-gray-200 hover:border-black rounded-xl p-3.5 space-y-3 shadow-sm transition-all">
+                <div class="bg-white border border-gray-200 hover:border-black rounded-xl p-3.5 space-y-2.5 shadow-sm transition-all">
                     <div onclick="openDetailsModal('${t.id}')" class="cursor-pointer space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
@@ -1017,12 +1033,11 @@
                                 <span class="text-[9px] text-gray-400 underline">Tap for details ➔</span>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-gray-500 pt-1 border-t border-gray-100">
-                            <span>Players: ${playersArray.length} / ${t.maxPlayers}</span>
-                            <span>Fee: Ksh ${t.entryFee}</span>
-                        </div>
                     </div>
-                    <div>${cardActionButton}</div>
+                    <div class="flex justify-between items-center text-[10px] text-gray-500 pt-2 border-t border-gray-100">
+                        <span>Players: ${playersArray.length} / ${t.maxPlayers} &bull; Fee: Ksh ${t.entryFee}</span>
+                        <div>${cardActionButton}</div>
+                    </div>
                 </div>`;
             });
             list.innerHTML = html;
@@ -1035,6 +1050,7 @@
             const hostingCost = 100;
             if (userProfile.balance < hostingCost) {
                 openAddBalanceModal();
+                showToast("Insufficient balance! Please top up to host a tournament.");
                 return;
             }
 
@@ -1137,12 +1153,6 @@
                     return;
                 }
 
-                if (userProfile.balance < tData.entryFee) {
-                    closeJoinModal();
-                    openAddBalanceModal();
-                    return;
-                }
-
                 let players = tData.players ? Object.values(tData.players) : [];
                 if (players.some(p => p.uid === userProfile.uid)) {
                     showToast("You already joined this tournament!");
@@ -1150,21 +1160,42 @@
                     return;
                 }
 
-                userProfile.balance -= tData.entryFee;
-                
-                try {
-                    await rtdb.ref('users/' + currentUser.uid).update({ balance: userProfile.balance });
-                    await rtdb.ref('tournaments/' + selectedTournamentId + '/players').push({
-                        name: userProfile.name,
-                        uid: userProfile.uid
-                    });
+                const entryFee = Number(tData.entryFee) || 50;
+                const paylinkId = paylinkMapping[entryFee] || paylinkMapping[50];
 
-                    updateUIProfile();
+                try {
                     closeJoinModal();
-                    showToast('Successfully joined tournament!');
+                    const result = await startPalplussPayment(entryFee, paylinkId);
+
+                    if (result && result.txId) {
+                        showToast(`Payment successful! Joining tournament...`);
+
+                        const freshSnap = await rtdb.ref('tournaments/' + selectedTournamentId).once('value');
+                        const freshData = freshSnap.val();
+                        if (!freshData || freshData.status !== 'open') {
+                            showToast("Registration is no longer open, but payment was received.");
+                            return;
+                        }
+
+                        let currentPlayers = freshData.players ? Object.values(freshData.players) : [];
+                        if (currentPlayers.some(p => p.uid === userProfile.uid)) {
+                            showToast("You are already registered.");
+                            return;
+                        }
+
+                        await rtdb.ref('tournaments/' + selectedTournamentId + '/players').push({
+                            name: userProfile.name,
+                            uid: userProfile.uid,
+                            txId: result.txId
+                        });
+
+                        showToast('Successfully joined tournament!');
+                    } else {
+                        showToast("Payment cancelled or failed.");
+                    }
                 } catch (err) {
-                    closeJoinModal();
-                    showToast('Error joining: ' + err.message);
+                    console.log("Payment window error:", err);
+                    showToast("Payment process encountered an error.");
                 }
             });
         }
@@ -1251,11 +1282,12 @@
         async function updateTournamentStatus(status) {
             if (!selectedTournamentId) return;
 
+            const t = tournaments.find(item => item.id === selectedTournamentId);
+            const playersArray = t && t.players ? Object.values(t.players) : [];
+
             if (status === 'started') {
-                const t = tournaments.find(item => item.id === selectedTournamentId);
-                const playersArray = t && t.players ? Object.values(t.players) : [];
-                if (playersArray.length < 2) {
-                    showCustomAlert("You need at least 2 players joined to start this match.");
+                if (playersArray.length < t.maxPlayers) {
+                    showCustomAlert(`All slots must be filled before starting this match. (${playersArray.length}/${t.maxPlayers} players joined)`);
                     return;
                 }
             }
