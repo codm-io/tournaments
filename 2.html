@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earn Millions - Invite & Earn</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body { background: #f1f5f9; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+    
+    .card { background: #ffffff; width: 100%; max-width: 440px; padding: 25px 20px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.06); text-align: center; position: relative; overflow: hidden; }
+
+    /* Custom Notification Banner - COMPACT FLOATING CENTERED ABOVE CARD */
+    #customNotification { 
+      position: fixed; 
+      top: 0; 
+      left: 50%;
+      width: calc(100% - 40px);
+      max-width: 380px; 
+      margin-top: 14px;
+      background: #2563eb; 
+      color: #ffffff; 
+      font-size: 13px; 
+      font-weight: 800; 
+      padding: 11px 16px; 
+      border-radius: 12px;
+      transform: translateX(-50%) translateY(-150%); 
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+      z-index: 9999999; 
+      text-align: center; 
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+    #customNotification.show { transform: translateX(-50%) translateY(0); }
+    #customNotification.error { background: #dc2626; }
+    #customNotification.success { background: #16a34a; }
+
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+    .badge-live { display: inline-block; background: #dc2626; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    .user-dropdown { position: relative; display: inline-block; }
+    .user-nickname-btn { background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .user-nickname-btn:hover { background: #e2e8f0; }
+    
+    .dropdown-content { display: none; position: absolute; right: 0; top: 35px; background-color: #ffffff; border: 1px solid #cbd5e1; min-width: 130px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px; z-index: 10; text-align: left; overflow: hidden; }
+    .dropdown-content a { color: #0f172a; padding: 10px 14px; text-decoration: none; display: block; font-size: 13px; font-weight: bold; }
+    .dropdown-content a:hover { background-color: #fee2e2; color: #dc2626; }
+
+    h2 { font-size: 24px; font-weight: 800; color: #15803d; margin-bottom: 8px; }
+    p.fomo-text { font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.4; }
+    
+    .stats-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    .stats-box span { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; }
+    .stats-box h3 { font-size: 32px; color: #16a34a; font-weight: 800; margin-top: 2px; }
+
+    .hidden-code-container { margin-bottom: 15px; text-align: left; background: #fffbeb; border: 1px dashed #f59e0b; padding: 14px; border-radius: 10px; position: relative; cursor: pointer; }
+    .hidden-code-container label { font-size: 12px; color: #b45309; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    
+    .blur-wrapper { position: relative; width: 100%; border-radius: 6px; overflow: hidden; background: #e2e8f0; border: 1px solid #cbd5e1; }
+    .blur-target { filter: blur(6px); user-select: none; padding: 12px; font-size: 15px; font-weight: 900; color: #0f172a; letter-spacing: 1px; text-align: center; background: #cbd5e1; pointer-events: none; transition: filter 0.4s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .blur-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(1px); transition: 0.2s; }
+    .blur-overlay:hover { background: rgba(15, 23, 42, 0.55); }
+    .blur-overlay span { color: #ffffff; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+    .share-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
+    .share-box label { font-size: 12px; color: #15803d; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .share-box textarea { width: 100%; height: 75px; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; border-radius: 6px; padding: 8px; font-size: 12px; resize: none; font-family: inherit; margin-bottom: 8px; outline: none; }
+
+    .share-actions { display: flex; gap: 8px; }
+    .share-actions button { flex: 1; margin-bottom: 0; }
+
+    .status-banner { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 8px 12px; font-size: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; display: block; }
+    .status-banner.active { background: #dcfce7; border-color: #bbf7d0; color: #166534; }
+
+    .btn { background: #16a34a; color: #ffffff; border: none; padding: 14px; font-size: 14px; font-weight: 800; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 10px; text-transform: uppercase; transition: 0.2s; line-height: 1.3; }
+    .btn:hover { background: #15803d; }
+    .btn-secondary { background: #2563eb; color: #ffffff; }
+    .btn-secondary:hover { background: #1d4ed8; }
+    .btn-share { background: #0284c7; color: #ffffff; }
+    .btn-share:hover { background: #0369a1; }
+
+    .invite-section { margin-top: 20px; text-align: left; }
+    .invite-section h4 { font-size: 14px; color: #64748b; margin-bottom: 10px; text-transform: uppercase; font-weight: 700; }
+    
+    ul.invite-list { list-style: none; max-height: 180px; overflow-y: auto; }
+    ul.invite-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 500; }
+    
+    .badge { padding: 4px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+    .paid { background: #dcfce7; color: #15803d; }
+    .pending { background: #fef3c7; color: #b45309; }
+
+    /* Modal Styles */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; padding: 20px; z-index: 99; backdrop-filter: blur(2px); }
+    .modal { background: #ffffff; padding: 25px; border-radius: 12px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 18px; color: #0f172a; margin-bottom: 15px; font-weight: 800; }
+    .modal p { font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.4; }
+    .modal input { width: 100%; padding: 12px; margin-bottom: 12px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; border-radius: 6px; font-size: 14px; outline: none; }
+    .modal input:focus { border-color: #16a34a; background: #ffffff; }
+    .close-btn { background: #e2e8f0; color: #334155; margin-top: 5px; }
+    .close-btn:hover { background: #cbd5e1; }
+
+    /* Paylink Iframe Modal Overrides */
+    .paylink-modal { max-width: 500px; padding: 15px; }
+    .iframe-wrapper { width: 100%; border-radius: 8px; overflow: hidden; background: #fff; }
+    iframe#palpluss-iframe { width: 100%; border: none; min-height: 560px; display: block; transition: height 0.2s ease; }
+
+    /* Receipt UI Card */
+    .receipt-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 15px; text-align: left; margin-bottom: 15px; }
+    .receipt-card h4 { color: #166534; font-size: 16px; margin-bottom: 10px; text-align: center; }
+    .receipt-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; }
+    .receipt-row span:first-child { color: #64748b; font-weight: 600; }
+    .receipt-row span:last-child { color: #0f172a; font-weight: 700; word-break: break-all; }
+
+    /* Loading Screen Overlay */
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; color: white; }
+    .spinner { width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #16a34a; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tab-header { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 10px; cursor: pointer; color: #64748b; font-weight: bold; font-size: 14px; background: none; border: none; }
+    .tab-btn.active { color: #16a34a; border-bottom: 2px solid #16a34a; }
+
+    .hidden { display: none !important; }
+  </style>
+
+  <!-- Firebase SDKs & Config -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyClYSD9FiNiwjtLsiWG_0xbXGBQUmSxQSA",
+      authDomain: "codm-19d8b.firebaseapp.com",
+      databaseURL: "https://codm-19d8b-default-rtdb.firebaseio.com",
+      projectId: "codm-19d8b",
+      storageBucket: "codm-19d8b.firebasestorage.app",
+      messagingSenderId: "208027362884",
+      appId: "1:208027362884:web:c3fc8c26024f2351423e11",
+      measurementId: "G-KXJMPSG902"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.dbRef = ref;
+    window.dbSet = set;
+    window.dbGet = get;
+    window.dbChild = child;
+    window.dbUpdate = update;
+  </script>
+</head>
+<body>
+
+  <!-- Custom Notification Banner FLOATING & COMPACT -->
+  <div id="customNotification">Notification message here</div>
+
+  <!-- Loading Spinner Screen -->
+  <div class="loading-overlay" id="loadingScreen">
+    <div class="spinner"></div>
+    <p id="loadingText" style="font-weight: bold; font-size: 14px;">Loading...</p>
+  </div>
+
+  <div class="card">
+    <div class="top-header">
+      <span class="badge-live">⚡ MILLIONS CLUB</span>
+      <div id="userProfileNav" class="user-dropdown hidden">
+        <button class="user-nickname-btn" onclick="toggleDropdown()">
+          <span id="navNickname">@User</span> ▾
+        </button>
+        <div id="dropdownMenu" class="dropdown-content">
+          <a href="#" onclick="logout()">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <h2>START YOUR JOURNEY TO MAKE MILLIONS TODAY!</h2>
+    <p class="fomo-text">Over <strong>12,000+ Kenyans</strong> are earning weekly! Register, unlock your invite link & start earning <strong>25 KSH instantly per invite</strong>!</p>
+
+    <div id="statusBanner" class="status-banner">Status: NOT LOGGED IN</div>
+
+    <div class="stats-box">
+      <span>Total Earned</span>
+      <h3 id="totalEarned">0 KSH</h3>
+    </div>
+
+    <div id="hiddenCodeSection" class="hidden-code-container hidden" onclick="handleLockedCodeClick()">
+      <label>Share Your Link and Start collecting 50ksh per Invite.</label>
+      <div class="blur-wrapper">
+        <div class="blur-target" id="blurredCodeText">https://earn.co.ke/join?ref=LOCKED</div>
+        <div class="blur-overlay">
+          <span>🔒 Your link appears here !!</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="shareBoxSection" class="share-box hidden">
+      <label>📢 Full Share Message, Link & Code</label>
+      <textarea id="userInviteMessage" readonly></textarea>
+      <div class="share-actions">
+        <button class="btn btn-secondary" style="padding: 10px; font-size: 13px;" onclick="copyInviteMessage()">COPY MESSAGE</button>
+        <button class="btn btn-share" style="padding: 10px; font-size: 13px;" onclick="nativeShareMessage()">SHARE 🚀</button>
+      </div>
+    </div>
+
+    <div id="guestActions">
+      <button class="btn" onclick="openAuthModal('signin')">🚀 MAKE MONEY</button>
+    </div>
+
+    <div id="unpaidActions" class="hidden">
+      <button class="btn" onclick="openModal('topUpModal')">TAP TO UNLOCK YOUR LINK</button>
+    </div>
+
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;" />
+
+    <div class="invite-section">
+      <h4>Invited Users</h4>
+      <ul class="invite-list" id="inviteList">
+        <li><span style="color:#94a3b8;">Manage your invites here</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="tab-header">
+        <button class="tab-btn active" id="tabSignInBtn" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="tab-btn" id="tabSignUpBtn" onclick="switchAuthTab('signup')">Register</button>
+      </div>
+
+      <div id="signInForm">
+        <p>Enter your nickname and password to continue.</p>
+        <input type="text" id="loginNickname" placeholder="Nickname" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button class="btn" onclick="completeLogin()">SIGN IN</button>
+      </div>
+
+      <div id="signUpStep1">
+        <p>Enter Inviter Code first to Continue (e.g., XYZ-1234).</p>
+        <input type="text" id="inviterCode" placeholder="Enter Inviter Code" />
+        <button class="btn" onclick="verifyInviterCode()">CONTINUE TO REGISTER</button>
+      </div>
+
+      <div id="signUpStep2" class="hidden">
+        <p style="color:#16a34a; font-weight:bold;">Inviter Code Verified!</p>
+        <p>Choose your unique nickname and password.</p>
+        <input type="text" id="signUpNickname" placeholder="Choose Nickname" />
+        <input type="password" id="signUpPassword" placeholder="Choose Password" />
+        <button class="btn" onclick="completeSignUp()">REGISTER NOW</button>
+      </div>
+
+      <button class="btn close-btn" onclick="closeModal('authModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TOP UP / PRE-PAYMENT CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="topUpModal">
+    <div class="modal">
+      <h3>Unlock Your Income Stream</h3>
+      <p>Activate your account now to unlock your personal link and start collecting 50 KSH per invite!</p>
+      <button class="btn" id="topUpBtn" onclick="openPalplussWidget()">CONTINUE TO PAY</button>
+      <button class="btn close-btn" onclick="closeModal('topUpModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PALPLUSS PAYLINK IFRAME WIDGET MODAL -->
+  <div class="modal-overlay" id="palplussPayModal">
+    <div class="modal paylink-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="font-size: 15px; color: #0f172a;">Complete M-Pesa Payment</h4>
+        <button onclick="closePalplussPayModal(true)" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
+      </div>
+      <div class="iframe-wrapper">
+        <iframe 
+          id="palpluss-iframe" 
+          src="about:blank" 
+          allow="payment">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS RECEIPT MODAL -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal">
+      <div class="receipt-card">
+        <h4>🎉 Payment Successful!</h4>
+        <p style="text-align: center; font-size: 12px; margin-bottom: 12px; color: #15803d;">Your account is now fully active.</p>
+        <div class="receipt-row">
+          <span>Ref / TX ID:</span>
+          <span id="rcptTxId">---</span>
+        </div>
+        <div class="receipt-row">
+          <span>Amount Paid:</span>
+          <span id="rcptAmount">---</span>
+        </div>
+        <div class="receipt-row">
+          <span>Phone:</span>
+          <span id="rcptPhone">---</span>
+        </div>
+      </div>
+      <button class="btn" onclick="closeModal('receiptModal')">GREAT! START EARNING</button>
+    </div>
+  </div>
+
+  <script>
+    const PAYLINK_ID = "c8c4a0b3-2835-4435-900d-c43d3b02fd19";
+    const PAYLINK_URL = `https://link.palpluss.com/${PAYLINK_ID}?embed=1`;
+
+    let currentUser = null; 
+    let validInviterCode = "";
+    let registeredRefererOwnerUid = "";
+    let isRegistering = false;
+    let isProcessingSuccess = false;
+
+    function showNotification(message, type = 'success') {
+      const note = document.getElementById('customNotification');
+      note.innerText = message;
+      note.className = `show ${type}`;
+      setTimeout(() => {
+        note.className = '';
+      }, 3500);
+    }
+
+    function showLoading(text = "Loading...") {
+      document.getElementById('loadingText').innerText = text;
+      document.getElementById('loadingScreen').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingScreen').style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Setup window listener for Palpluss postMessage Events
+      setupPalplussPostMessageListener();
+
+      const savedUid = localStorage.getItem('million_club_uid');
+      if (savedUid) {
+        showLoading("Restoring session...");
+        try {
+          const userSnap = await window.dbGet(window.dbRef(window.db, `users/${savedUid}`));
+          if (userSnap.exists()) {
+            const userData = userSnap.val();
+            currentUser = {
+              uid: savedUid,
+              nickname: userData.nickname,
+              isPaid: userData.isPaid,
+              balance: userData.balance || 0,
+              invitedBy: userData.invitedBy || null
+            };
+            await fetchAndRenderUserData();
+          } else {
+            localStorage.removeItem('million_club_uid');
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          hideLoading();
+        }
+      }
+    });
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { 
+      document.getElementById(id).style.display = 'none';
+      if (id === 'authModal') resetRegisterSteps();
+      if (id === 'palplussPayModal') {
+        document.getElementById('palpluss-iframe').src = "about:blank";
+      }
+    }
+
+    function closePalplussPayModal(cancelledByUser = false) {
+      closeModal('palplussPayModal');
+      if (cancelledByUser) {
+        showNotification('Payment cancelled by user. Activation required to unlock your link.', 'error');
+      }
+    }
+
+    function toggleDropdown() {
+      const menu = document.getElementById('dropdownMenu');
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function openAuthModal(tab = 'signin') {
+      switchAuthTab(tab);
+      openModal('authModal');
+    }
+
+    function switchAuthTab(tab) {
+      const signInForm = document.getElementById('signInForm');
+      if (tab === 'signin') {
+        signInForm.classList.remove('hidden');
+        document.getElementById('signUpStep1').classList.add('hidden');
+        document.getElementById('signUpStep2').classList.add('hidden');
+        document.getElementById('tabSignInBtn').classList.add('active');
+        document.getElementById('tabSignUpBtn').classList.remove('active');
+      } else {
+        signInForm.classList.add('hidden');
+        resetRegisterSteps();
+        document.getElementById('tabSignUpBtn').classList.add('active');
+        document.getElementById('tabSignInBtn').classList.remove('active');
+      }
+    }
+
+    function resetRegisterSteps() {
+      document.getElementById('signUpStep1').classList.remove('hidden');
+      document.getElementById('signUpStep2').classList.add('hidden');
+    }
+
+    /* ---------------- PALPLUSS WIDGET & MESSAGE HANDLER ---------------- */
+    function openPalplussWidget() {
+      if (!currentUser) {
+        closeModal('topUpModal');
+        openAuthModal('signin');
+        return;
+      }
+
+      if (currentUser.isPaid) {
+        showNotification('Your account is already activated!', 'error');
+        closeModal('topUpModal');
+        return;
+      }
+
+      closeModal('topUpModal');
+      
+      const iframe = document.getElementById('palpluss-iframe');
+      iframe.src = PAYLINK_URL;
+      openModal('palplussPayModal');
+    }
+
+    function setupPalplussPostMessageListener() {
+      window.addEventListener('message', async function(e) {
+        // Validate payload format
+        if (!e.data || typeof e.data !== 'object') return;
+
+        // Origin check for security
+        if (e.origin !== 'https://link.palpluss.com' && !e.origin.includes('palpluss.com')) {
+          // Allow internal sandbox/iframe checks if needed
+        }
+
+        // Handle iframe auto-resizing
+        if (e.data.type === 'RESIZE' && e.data.height) {
+          const iframe = document.getElementById('palpluss-iframe');
+          if (iframe) {
+            iframe.style.height = e.data.height + 'px';
+          }
+        }
+
+        // Handle PAYMENT_CANCELLED event
+        if (e.data.type === 'PAYMENT_CANCELLED' || e.data.type === 'PAYMENT_CANCEL' || e.data.type === 'CANCELLED') {
+          console.log('Palpluss Payment Cancelled:', e.data);
+          closeModal('palplussPayModal');
+          showNotification('Payment cancelled by user. Activation required to unlock your link.', 'error');
+          return;
+        }
+
+        // Handle PAYMENT_FAILED event
+        if (e.data.type === 'PAYMENT_FAILED' || e.data.type === 'PAYMENT_FAILURE' || e.data.type === 'FAILED') {
+          console.log('Palpluss Payment Failed:', e.data);
+          closeModal('palplussPayModal');
+          const reason = e.data.message || e.data.reason || 'Payment failed or was declined. Please try again.';
+          showNotification(reason, 'error');
+          return;
+        }
+
+        // Handle PAYMENT_SUCCESS event ONLY
+        if (e.data.type === 'PAYMENT_SUCCESS') {
+          console.log('Palpluss Payment Confirmed:', e.data);
+          
+          if (isProcessingSuccess) return;
+          isProcessingSuccess = true;
+
+          closeModal('palplussPayModal');
+          showLoading("Activating your account...");
+
+          try {
+            await handleSuccessfulPaymentActivation(e.data);
+          } catch (err) {
+            console.error("Activation error:", err);
+            showNotification("Failed to record activation. Contact support.", "error");
+          } finally {
+            isProcessingSuccess = false;
+            hideLoading();
+          }
+        }
+      });
+    }
+
+    async function handleSuccessfulPaymentActivation(paymentData) {
+      if (!currentUser) return;
+
+      const db = window.db;
+
+      // 1. Mark current user active/paid in Firebase
+      currentUser.isPaid = true;
+
+      await window.dbUpdate(window.dbRef(db, `users/${currentUser.uid}`), {
+        isPaid: true
+      });
+
+      // 2. Reward Inviter with 50 KSH IF inviter exists
+      if (currentUser.invitedBy && currentUser.invitedBy !== "system_admin_default") {
+        const referrerRef = window.dbRef(db, `users/${currentUser.invitedBy}`);
+        const referrerSnap = await window.dbGet(referrerRef);
+
+        if (referrerSnap.exists()) {
+          const referrerData = referrerSnap.val();
+          const currentReferrerBalance = referrerData.balance || 0;
+          const newReferrerBalance = currentReferrerBalance + 50;
+
+          await window.dbUpdate(referrerRef, {
+            balance: newReferrerBalance
+          });
+        }
+
+        // Update invite status under inviter's profile
+        await window.dbUpdate(window.dbRef(db, `users/${currentUser.invitedBy}/invites/${currentUser.uid}`), {
+          status: "paid"
+        });
+      }
+
+      // 3. Render Receipt details
+      document.getElementById('rcptTxId').innerText = paymentData.txId || 'N/A';
+      document.getElementById('rcptAmount').innerText = paymentData.amount ? `KES ${paymentData.amount}` : 'KES 50';
+      document.getElementById('rcptPhone').innerText = paymentData.phone || 'N/A';
+
+      // 4. Update UI dynamically & open Receipt Modal
+      await fetchAndRenderUserData();
+      showNotification('Payment verified! Account Activated.', 'success');
+      openModal('receiptModal');
+    }
+
+    /* ---------------- AUTHENTICATION & DATABASE LOGIC ---------------- */
+    async function verifyInviterCode() {
+      const codeInput = document.getElementById('inviterCode').value.trim().toUpperCase();
+      if (!codeInput) {
+        showNotification('Please enter a valid Inviter Code!', 'error');
+        return;
+      }
+
+      showLoading("Verifying code...");
+      try {
+        const db = window.db;
+        const codesRef = window.dbRef(db, 'codes');
+        const codesSnap = await window.dbGet(codesRef);
+
+        if (!codesSnap.exists() || codesSnap.val() === null) {
+          const defaultCode = "XYZ-1234";
+          const systemTimestamp = new Date().toISOString();
+          await window.dbSet(window.dbRef(db, `codes/${defaultCode}`), {
+            ownerUid: "system_admin_default",
+            createdAt: systemTimestamp,
+            referer: "SYSTEM"
+          });
+        }
+
+        const targetSnap = await window.dbGet(window.dbChild(codesRef, codeInput));
+        if (!targetSnap.exists()) {
+          showNotification('Invalid Inviter Code!', 'error');
+          hideLoading();
+          return;
+        }
+
+        validInviterCode = codeInput;
+        registeredRefererOwnerUid = targetSnap.val().ownerUid;
+
+        document.getElementById('signUpStep1').classList.add('hidden');
+        document.getElementById('signUpStep2').classList.remove('hidden');
+        showNotification('Code verified successfully!', 'success');
+      } catch (error) {
+        console.error(error);
+        showNotification('Error checking code. Try again.', 'error');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function completeSignUp() {
+      if (isRegistering) return;
+
+      const nicknameInput = document.getElementById('signUpNickname');
+      const passInput = document.getElementById('signUpPassword');
+      const nickname = nicknameInput.value.trim();
+      const pass = passInput.value.trim();
+
+      if (!nickname || !pass) {
+        showNotification('Please enter a nickname and password', 'error');
+        return;
+      }
+
+      isRegistering = true;
+      showLoading("Creating your account...");
+
+      try {
+        const db = window.db;
+        
+        const usersSnap = await window.dbGet(window.dbRef(db, 'users'));
+        if (usersSnap.exists()) {
+          let nicknameExists = false;
+          usersSnap.forEach((childSnap) => {
+            const userData = childSnap.val();
+            if (userData.nickname && userData.nickname.toLowerCase() === nickname.toLowerCase()) {
+              nicknameExists = true;
+            }
+          });
+
+          if (nicknameExists) {
+            showNotification('Nickname already registered!', 'error');
+            isRegistering = false;
+            hideLoading();
+            return;
+          }
+        }
+
+        const myUniqueCode = `${nickname.toUpperCase()}_VIP`;
+
+        const codeCheckSnap = await window.dbGet(window.dbChild(window.dbRef(db), `codes/${myUniqueCode}`));
+        if (codeCheckSnap.exists()) {
+          showNotification('Invite code identity already taken.', 'error');
+          isRegistering = false;
+          hideLoading();
+          return;
+        }
+
+        const newUserRef = window.dbRef(db, 'users/' + Date.now());
+        const newUserId = newUserRef.key;
+        const timestamp = new Date().toISOString();
+
+        await window.dbSet(newUserRef, {
+          nickname: nickname,
+          password: pass,
+          time: timestamp,
+          isPaid: false,
+          balance: 0,
+          invitedBy: registeredRefererOwnerUid
+        });
+
+        await window.dbSet(window.dbRef(db, `codes/${myUniqueCode}`), {
+          ownerUid: newUserId,
+          createdAt: timestamp,
+          referer: validInviterCode
+        });
+
+        await window.dbSet(window.dbRef(db, `users/${registeredRefererOwnerUid}/invites/${newUserId}`), {
+          name: nickname,
+          status: "pending",
+          uid: newUserId,
+          time: timestamp
+        });
+
+        closeModal('authModal');
+        showNotification('Registration successful! Logged in.', 'success');
+
+        currentUser = {
+          uid: newUserId,
+          nickname: nickname,
+          isPaid: false,
+          balance: 0,
+          invitedBy: registeredRefererOwnerUid
+        };
+
+        localStorage.setItem('million_club_uid', newUserId);
+        await fetchAndRenderUserData();
+      } catch (error) {
+        console.error(error);
+        showNotification('Registration failed. Try again.', 'error');
+      } finally {
+        isRegistering = false;
+        hideLoading();
+      }
+    }
+
+    async function completeLogin() {
+      const nickname = document.getElementById('loginNickname').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+
+      if (!nickname || !pass) {
+        showNotification('Please enter your nickname and password', 'error');
+        return;
+      }
+
+      showLoading("Signing in...");
+      try {
+        const usersSnap = await window.dbGet(window.dbRef(window.db, 'users'));
+        if (!usersSnap.exists()) {
+          showNotification('No users found.', 'error');
+          hideLoading();
+          return;
+        }
+
+        let foundUser = null;
+        let foundUid = null;
+
+        usersSnap.forEach((childSnap) => {
+          const userData = childSnap.val();
+          if (userData.nickname === nickname && userData.password === pass) {
+            foundUser = userData;
+            foundUid = childSnap.key;
+          }
+        });
+
+        if (!foundUser) {
+          showNotification('Incorrect nickname or password!', 'error');
+          hideLoading();
+          return;
+        }
+
+        currentUser = {
+          uid: foundUid,
+          nickname: foundUser.nickname,
+          isPaid: foundUser.isPaid,
+          balance: foundUser.balance || 0,
+          invitedBy: foundUser.invitedBy || null
+        };
+
+        localStorage.setItem('million_club_uid', foundUid);
+        closeModal('authModal');
+        showNotification('Signed in successfully!', 'success');
+        await fetchAndRenderUserData();
+      } catch (error) {
+        console.error(error);
+        showNotification('Login error occurred.', 'error');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function fetchAndRenderUserData() {
+      if (!currentUser) return;
+
+      try {
+        const userSnap = await window.dbGet(window.dbRef(window.db, `users/${currentUser.uid}`));
+        if (!userSnap.exists()) return;
+        const userData = userSnap.val();
+
+        currentUser.isPaid = userData.isPaid;
+        currentUser.balance = userData.balance || 0;
+        currentUser.invitedBy = userData.invitedBy || null;
+
+        const codesSnap = await window.dbGet(window.dbRef(window.db, 'codes'));
+        let myCode = `${currentUser.nickname.toUpperCase()}_VIP`; 
+        codesSnap.forEach((codeSnap) => {
+          if (codeSnap.val().ownerUid === currentUser.uid) {
+            myCode = codeSnap.key;
+          }
+        });
+        currentUser.myCode = myCode;
+
+        updateUI(userData.invites || {});
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function updateUI(invitesObj = {}) {
+      const userProfileNav = document.getElementById('userProfileNav');
+      const navNickname = document.getElementById('navNickname');
+      const statusBanner = document.getElementById('statusBanner');
+      const guestActions = document.getElementById('guestActions');
+      const unpaidActions = document.getElementById('unpaidActions');
+      const hiddenCodeSection = document.getElementById('hiddenCodeSection');
+      const shareBoxSection = document.getElementById('shareBoxSection');
+      const inviteList = document.getElementById('inviteList');
+      const totalEarned = document.getElementById('totalEarned');
+      const inviteMessageInput = document.getElementById('userInviteMessage');
+
+      if (!currentUser) {
+        userProfileNav.classList.add('hidden');
+        statusBanner.innerText = "Status: NOT LOGGED IN";
+        statusBanner.className = "status-banner";
+        guestActions.classList.remove('hidden');
+        unpaidActions.classList.add('hidden');
+        hiddenCodeSection.classList.add('hidden');
+        shareBoxSection.classList.add('hidden');
+        totalEarned.innerText = "0 KSH";
+        inviteList.innerHTML = `<li><span style="color:#94a3b8;">Manage your invites here</span></li>`;
+      } 
+      else if (currentUser && !currentUser.isPaid) {
+        navNickname.innerText = `@${currentUser.nickname}`;
+        userProfileNav.classList.remove('hidden');
+        statusBanner.innerText = "Status: INACTIVE (Activation Required)";
+        statusBanner.className = "status-banner";
+        guestActions.classList.add('hidden');
+        unpaidActions.classList.remove('hidden');
+        hiddenCodeSection.classList.remove('hidden'); 
+        shareBoxSection.classList.add('hidden');
+        totalEarned.innerText = `${currentUser.balance} KSH`;
+
+        inviteList.innerHTML = `<li><span style="color:#94a3b8;">No invites yet</span></li>`;
+      } 
+      else if (currentUser && currentUser.isPaid) {
+        navNickname.innerText = `@${currentUser.nickname}`;
+        userProfileNav.classList.remove('hidden');
+        statusBanner.innerText = `Status: ACTIVE MEMBER (@${currentUser.nickname})`;
+        statusBanner.className = "status-banner active";
+        guestActions.classList.add('hidden');
+        unpaidActions.classList.add('hidden');
+        hiddenCodeSection.classList.add('hidden'); 
+        shareBoxSection.classList.remove('hidden'); 
+
+        inviteMessageInput.value = `Join Millions Club & earn 50 KSH per invite!\n\nUse Invite Code: ${currentUser.myCode}\nLink: https://earn.co.ke/join?ref=${currentUser.myCode}`;
+        totalEarned.innerText = `${currentUser.balance} KSH`;
+
+        inviteList.innerHTML = "";
+        const inviteKeys = Object.keys(invitesObj);
+        
+        if (inviteKeys.length === 0) {
+          inviteList.innerHTML = `<li><span style="color:#94a3b8;">No invites yet</span></li>`;
+        } else {
+          inviteKeys.forEach((key) => {
+            const inv = invitesObj[key];
+            const badgeClass = inv.status === 'paid' ? 'paid' : 'pending';
+            inviteList.innerHTML += `
+              <li><span>User: @${inv.name}</span><span class="badge ${badgeClass}">${inv.status.toUpperCase()}</span></li>
+            `;
+          });
+        }
+      }
+    }
+
+    function handleLockedCodeClick() {
+      if (!currentUser) openAuthModal('signin');
+      else if (!currentUser.isPaid) openModal('topUpModal');
+    }
+
+    function logout() {
+      showLoading("Signing out...");
+      setTimeout(() => {
+        currentUser = null;
+        localStorage.removeItem('million_club_uid');
+        document.getElementById('dropdownMenu').style.display = 'none';
+        updateUI();
+        hideLoading();
+        showNotification('Signed out successfully.', 'success');
+        openAuthModal('signin');
+      }, 500);
+    }
+
+    function copyInviteMessage() {
+      const messageInput = document.getElementById('userInviteMessage');
+      messageInput.select();
+      document.execCommand('copy');
+      showNotification('Copied message to clipboard!', 'success');
+    }
+
+    function nativeShareMessage() {
+      const messageText = document.getElementById('userInviteMessage').value;
+      if (navigator.share) {
+        navigator.share({ title: 'Millions Club Invitation', text: messageText });
+      } else {
+        copyInviteMessage();
+      }
+    }
+  </script>
+
+</body>
+</html>
